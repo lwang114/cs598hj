@@ -10,7 +10,8 @@ def load_word_embed(path: str,
                     *,
                     skip_first: bool = False,
                     freeze: bool = False,
-                    sep: str = ' '
+                    sep: str = ' ',
+                    vocab_in_data: Dict[str, int] = None
                     ) -> Tuple[nn.Embedding, Dict[str, int]]:
     """Load pre-trained word embeddings from file.
 
@@ -32,6 +33,12 @@ def load_word_embed(path: str,
         for line in r:
             segments = line.rstrip('\n').rstrip(' ').split(sep)
             word = segments[0]
+            if not word in vocab_in_data:
+              continue 
+
+            if len(vocab) > 100: # XXX
+              break 
+            print('Embedding {} for {}'.format(len(vocab), word))
             vocab[word] = len(vocab)
             embed = [float(x) for x in segments[1:]]
             embed_matrix.append(embed)
@@ -43,7 +50,28 @@ def load_word_embed(path: str,
                                               freeze=freeze,
                                               padding_idx=0)
     return word_embed, vocab
-            
+ 
+def get_word_vocab(*paths: str) -> Dict[str, int]:
+    """Generate a word vocab from data files.
+    
+    Args:
+        paths (str): data file paths
+
+    Returns:
+        Dict[str, int]: A word vocab where keys are labels and values are label
+        indices
+    
+    """
+    word_set = set()
+    for path in paths:
+      with open(path) as r:
+        for line in r:
+          instance = json.loads(line)
+          tokens = instance['tokens']
+          tokens += [token.lower() for token in tokens] 
+          word_set.update(tokens)
+
+    return {word: idx for idx, word in enumerate(word_set)}
 
 def get_label_vocab(*paths: str) -> Dict[str, int]:
     """Generate a label vocab from data files.
@@ -63,7 +91,6 @@ def get_label_vocab(*paths: str) -> Dict[str, int]:
                 for annotation in instance['annotations']:
                     label_set.update(annotation['labels'])
     return {label: idx for idx, label in enumerate(label_set)}
-
 
 def calculate_macro_fscore(golds: List[List[int]],
                            preds: List[List[int]]

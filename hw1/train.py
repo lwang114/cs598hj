@@ -1,9 +1,13 @@
 import torch
 import logging
+import os
+import json
+import time
 
 from data import FetDataset
 from model import LstmFet
 from util import (load_word_embed,
+                  get_word_vocab,
                   get_label_vocab,
                   calculate_macro_fscore)
 
@@ -20,13 +24,44 @@ batch_size = 1000
 # load the whole dataset into memory. We read the dataset in a streaming way.
 buffer_size = 1000 * 2000
 
-root = '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1'
-train_file = '{}/data/en.train.ds.json'.format(root)
-dev_file = '{}/data/en.dev.ds.json'.format(root)
-test_file = '{}/data/en.test.ds.json'.format(root)
+if not os.path.isdir('data'):
+  os.mkdir('data')
+elif not os.path.isfile('data/path.json'):
+  root = '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/'
+  path = {'root': root,
+          'train': '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/en.train.ds.json',
+          'dev': '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/en.dev.ds.json',
+          'test': '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/en.test.ds.json'}
+  with open('data/path.json', 'w') as f:
+    json.dump(path, f, indent=4, sort_keys=True)
+else:
+  with open('data/path.json', 'r') as f:
+    path = json.load(f)
+ 
+downsample_size = 100
+root = path['root']
+if downsample_size > 0:
+  with open(path['train'], 'r') as f_tr,\
+       open('{}/train_subset_{}.json'.format(root, downsample_size), 'w') as f_subtr:
+    for ex, line in enumerate(f_tr):
+      if ex > downsample_size:
+        break
+      print('Loading sentence {}'.format(ex))
+      train_dict = json.loads(line)
+      f_subtr.write('{}\n'.format(json.dumps(train_dict)))
+  path['train'] = '{}/train_subset_{}.json'.format(root, downsample_size)
+  path['dev'] = '{}/train_subset_{}.json'.format(root, downsample_size)
+  path['test'] = '{}/train_subset_{}.json'.format(root, downsample_size)
 
-embed_file = '{}/embedding/enwiki.cbow.100d.case.txt'.format(root)
-embed_dim = 100
+train_file = path['train'] 
+dev_file = path['dev'] 
+test_file = path['test'] 
+
+# if os.path.isfile('{}/cc.en.300.indata.vec'.format(root)):
+#   embed_file = '{}/cc.en.300.indata.vec'.format(root)
+# else:
+embed_file = '{}/cc.en.300.vec'.format(root) # enwiki.cbow.100d.case.txt
+embed_dim = 300 # 100
 embed_dropout = 0.5
 lstm_dropout = 0.5
 
@@ -43,17 +78,36 @@ test_set = FetDataset(test_file)
 # If the word vocab is too large for your machine, you can remove words not
 # appearing in the data set.
 print('Loading word embeddings from %s' % embed_file)
+begin_time = time.time()
+if not os.path.isfile('{}/vocabs.json'.format(root)):
+  word_vocab_in_data = get_word_vocab(train_file, dev_file, test_file)
+else:
+  with open('{}/vocabs.json'.format(root), 'r') as f:
+    vocabs = json.load(f)
+    label_vocab = vocabs['label']
+    label_num = len(label_vocab)
+    word_vocab_in_data = vocabs['word']
+    print(len('Total word vocabs in data={}'.format(word_vocab_in_data)))
+ 
+# XXX word_embed, word_vocab = load_word_embed(embed_file,
 word_embed, word_vocab = load_word_embed(embed_file,
-                                         embed_dim,
-                                         skip_first=True)
+                                embed_dim,
+                                vocab_in_data=word_vocab_in_data, # XXX
+                                skip_first=True)
+print('Finish loading word embedding in {} s'.format(time.time()-begin_time))
 
 # Scan the whole dateset to get the label set. This step may take a long 
 # time. You can save the label vocab to avoid scanning the dataset 
 # repeatedly.
 print('Collect fine-grained entity labels')
-label_vocab = get_label_vocab(train_file, dev_file, test_file)
-label_num = len(label_vocab)
-vocabs = {'word': word_vocab, 'label': label_vocab}
+begin_time = time.time()
+if not os.path.isfile('{}/vocabs.json'.format(root)):
+  label_vocab = get_label_vocab(train_file, dev_file, test_file)
+  label_num = len(label_vocab)
+  vocabs = {'word': word_vocab_in_data, 'label': label_vocab}
+  with open('{}/vocabs.json'.format(root), 'w') as f: # XXX
+    json.dump(vocabs, f, sort_keys=True, indent=4)
+print('Finish collecting fine-grained entity labels in {} s'.format(time.time()-begin_time))
 
 # Build the model
 print('Building the model')
@@ -87,7 +141,7 @@ for epoch in range(max_epoch):
         (token_idxs, labels,
          mention_mask, context_mask,
          mention_ids, mentions, seq_lens) = batch
-        
+
         loss, scores = model(token_idxs,
                              mention_mask,
                              context_mask,
