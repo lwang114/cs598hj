@@ -36,8 +36,8 @@ def load_word_embed(path: str,
             if not word in vocab_in_data:
               continue 
 
-            if len(vocab) > 100: # XXX
-              break 
+            # if len(vocab) > 1000: # XXX
+            #   break 
             print('Embedding {} for {}'.format(len(vocab), word))
             vocab[word] = len(vocab)
             embed = [float(x) for x in segments[1:]]
@@ -49,6 +49,7 @@ def load_word_embed(path: str,
     word_embed = nn.Embedding.from_pretrained(embed_matrix,
                                               freeze=freeze,
                                               padding_idx=0)
+    print(word_embed)
     return word_embed, vocab
  
 def get_word_vocab(*paths: str) -> Dict[str, int]:

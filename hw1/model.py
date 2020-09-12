@@ -24,7 +24,7 @@ class LstmFet(nn.Module):
                    inputs: torch.Tensor,
                    mention_mask: torch.Tensor,
                    context_mask: torch.Tensor,
-                   seq_lens: torch.Tensor) -> torch.Tensor:
+                   seq_lens: torch.Tensor) -> torch.Tensor: # XXX
         """
         Args:
             inputs (torch.Tensor): Word index tensor for the input batch.

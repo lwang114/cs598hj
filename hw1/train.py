@@ -3,6 +3,7 @@ import logging
 import os
 import json
 import time
+import argparse
 
 from data import FetDataset
 from model import LstmFet
@@ -17,7 +18,14 @@ def print_result(rst, vocab, mention_ids):
         labels = [rev_vocab[i] for i, v in enumerate(sent_rst) if v == 1]
         print(mention_id, ', '.join(labels))
 
-gpu = True
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument('--exp_dir', '-e', type=str, help='Experimental directory')
+parser.add_argument('--device', choices={'gpu', 'cpu'}, default='gpu', help='Use CPU or GPU')
+parser.add_argument('--downsample_size', type=int, default=-1, help='Size of the downsampled dataset. -1 if using the whole dataset')
+args = parser.parse_args()
+if not os.path.isdir(args.exp_dir):
+    os.mkdir(args.exp_dir)
+gpu = (args.device == 'gpu')
 
 batch_size = 1000
 # Because FET datasets are usually large (1m+ sentences), it is infeasible to 
@@ -26,7 +34,8 @@ buffer_size = 1000 * 2000
 
 if not os.path.isdir('data'):
   os.mkdir('data')
-elif not os.path.isfile('data/path.json'):
+
+if not os.path.isfile('data/path.json'):
   root = '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/'
   path = {'root': root,
           'train': '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/en.train.ds.json',
@@ -38,7 +47,7 @@ else:
   with open('data/path.json', 'r') as f:
     path = json.load(f)
  
-downsample_size = 100
+downsample_size = args.downsample_size
 root = path['root']
 if downsample_size > 0:
   with open(path['train'], 'r') as f_tr,\
@@ -57,9 +66,6 @@ train_file = path['train']
 dev_file = path['dev'] 
 test_file = path['test'] 
 
-# if os.path.isfile('{}/cc.en.300.indata.vec'.format(root)):
-#   embed_file = '{}/cc.en.300.indata.vec'.format(root)
-# else:
 embed_file = '{}/cc.en.300.vec'.format(root) # enwiki.cbow.100d.case.txt
 embed_dim = 300 # 100
 embed_dropout = 0.5
@@ -79,10 +85,10 @@ test_set = FetDataset(test_file)
 # appearing in the data set.
 print('Loading word embeddings from %s' % embed_file)
 begin_time = time.time()
-if not os.path.isfile('{}/vocabs.json'.format(root)):
+if not os.path.isfile('{}/vocabs.json'.format(args.exp_dir)):
   word_vocab_in_data = get_word_vocab(train_file, dev_file, test_file)
 else:
-  with open('{}/vocabs.json'.format(root), 'r') as f:
+  with open('{}/vocabs.json'.format(args.exp_dir), 'r') as f:
     vocabs = json.load(f)
     label_vocab = vocabs['label']
     label_num = len(label_vocab)
@@ -94,6 +100,7 @@ word_embed, word_vocab = load_word_embed(embed_file,
                                 embed_dim,
                                 vocab_in_data=word_vocab_in_data, # XXX
                                 skip_first=True)
+vocabs['word'] = word_vocab # XXX Overwrite the word indices to be consistent with the embedding matrix; Need to find a better way to handle words without embeddings
 print('Finish loading word embedding in {} s'.format(time.time()-begin_time))
 
 # Scan the whole dateset to get the label set. This step may take a long 
@@ -101,11 +108,11 @@ print('Finish loading word embedding in {} s'.format(time.time()-begin_time))
 # repeatedly.
 print('Collect fine-grained entity labels')
 begin_time = time.time()
-if not os.path.isfile('{}/vocabs.json'.format(root)):
+if not os.path.isfile('{}/vocabs.json'.format(args.exp_dir)):
   label_vocab = get_label_vocab(train_file, dev_file, test_file)
   label_num = len(label_vocab)
   vocabs = {'word': word_vocab_in_data, 'label': label_vocab}
-  with open('{}/vocabs.json'.format(root), 'w') as f: # XXX
+  with open('{}/vocabs.json'.format(args.exp_dir), 'w') as f: # XXX
     json.dump(vocabs, f, sort_keys=True, indent=4)
 print('Finish collecting fine-grained entity labels in {} s'.format(time.time()-begin_time))
 
@@ -141,7 +148,6 @@ for epoch in range(max_epoch):
         (token_idxs, labels,
          mention_mask, context_mask,
          mention_ids, mentions, seq_lens) = batch
-
         loss, scores = model(token_idxs,
                              mention_mask,
                              context_mask,
@@ -212,7 +218,7 @@ for epoch in range(max_epoch):
     print()
     print('Loss: {:.4f}'.format(sum(losses) / len(losses)))
 
-print('Best macro F-score (dev): {:2.f}'.format(best_dev_score))
-print('Best macro F-score (test): {:2.f}'.format(best_test_score))
+print('Best macro F-score (dev): {:2f}'.format(best_dev_score))
+print('Best macro F-score (test): {:2f}'.format(best_test_score))
         
     
