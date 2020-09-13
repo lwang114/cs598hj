@@ -23,6 +23,8 @@ parser.add_argument('--exp_dir', '-e', type=str, help='Experimental directory')
 parser.add_argument('--device', choices={'gpu', 'cpu'}, default='gpu', help='Use CPU or GPU')
 parser.add_argument('--downsample_size', type=int, default=-1, help='Size of the downsampled dataset. -1 if using the whole dataset')
 args = parser.parse_args()
+if not os.path.isdir('exp'):
+    os.mkdir('exp')
 if not os.path.isdir(args.exp_dir):
     os.mkdir(args.exp_dir)
 gpu = (args.device == 'gpu')
@@ -33,7 +35,7 @@ batch_size = 1000
 buffer_size = 1000 * 2000
 
 if not os.path.isdir('data'):
-  os.mkdir('data')
+    os.mkdir('data')
 
 if not os.path.isfile('data/path.json'):
   root = '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/'
@@ -215,6 +217,11 @@ for epoch in range(max_epoch):
             if best_dev:
                 best_test_score = fscore
         
+    torch.save(model.state_dict(), '{}/model_{}.pth'.format(args.exp_dir, epoch))
+    with open('{}/dev_results_{}.json'.format(args.exp_dir, epoch), 'w') as f:
+        json.dump(dev_results, f, indent=4, sort_keys=True)
+    with open('{}/test_results_{}.json'.format(args.exp_dir, epoch), 'w') as f:
+        json.dump(test_results, f, indent=4, sort_keys=True)
     print()
     print('Loss: {:.4f}'.format(sum(losses) / len(losses)))
 
