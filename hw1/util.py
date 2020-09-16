@@ -86,11 +86,20 @@ def get_label_vocab(*paths: str) -> Dict[str, int]:
     """
     label_set = set()
     for path in paths:
-        with open(path) as r:
-            for line in r:
-                instance = json.loads(line)
-                for annotation in instance['annotations']:
-                    label_set.update(annotation['labels'])
+        if ':' in path: # Combine data from multiple files
+          for subpath in path.split(':'):
+            with open(subpath) as r:            
+                for line in r:
+                  instance = json.loads(line)
+                  for annotation in instance['annotations']:
+                      label_set.update(annotation['labels'])
+
+        else:
+          with open(path) as r:
+              for line in r:
+                  instance = json.loads(line)
+                  for annotation in instance['annotations']:
+                      label_set.update(annotation['labels'])
     return {label: idx for idx, label in enumerate(label_set)}
 
 def calculate_macro_fscore(golds: List[List[int]],
@@ -126,3 +135,18 @@ def calculate_macro_fscore(golds: List[List[int]],
         2.0 * (precision * recall) / (precision + recall)
 
     return precision * 100.0, recall * 100.0, fscore * 100.0
+
+''' TODO
+def max_margin_rank_loss(scores: torch.Tensor,
+                         labels: torch.Tensor,
+                         margin: int = 1.):
+    loss = torch.zeros(1)
+    B = scores.size(0)
+    for b in range(B):
+      positive_indices = np.nonzeros(labels[b].cpu().numpy())[0]
+      negative_indices = np.nonzeros(1. - labels[b].cpu().numpy())[0]
+      for i_pos in positive_indices:
+        for i_neg in negative_indices:
+          loss += torch.max(scores[b][i_neg] - scores[b][i_pos] + margin, 0.)
+    return loss / B
+'''   

@@ -7,6 +7,7 @@ import argparse
 
 from data import FetDataset
 from model import LstmFet
+# from model_joint_embed import JointEmbedLstmFet
 from util import (load_word_embed,
                   get_word_vocab,
                   get_label_vocab,
@@ -23,11 +24,16 @@ parser.add_argument('--exp_dir', '-e', type=str, help='Experimental directory')
 parser.add_argument('--device', choices={'gpu', 'cpu'}, default='gpu', help='Use CPU or GPU')
 parser.add_argument('--embedding_type', choices={'cbow', 'multilingual-cbow'}, default='cbow', help='Embedding type')
 parser.add_argument('--downsample_size', type=int, default=-1, help='Size of the downsampled dataset. -1 if using the whole dataset')
+parser.add_argument('--dataset', choices={'wikipedia', 'wikipedia+kbp'}, help='Dataset')
+parser.add_argument('--model_type', choices={'lstm', 'lstm_joint_embed'}, default='lstm', help='Model architecture used')
 args = parser.parse_args()
 if not os.path.isdir('exp'):
     os.mkdir('exp')
 if not os.path.isdir(args.exp_dir):
     os.mkdir(args.exp_dir)
+with open('{}/args.txt'.format(args.exp_dir), 'w') as f:
+    f.write(str(args))
+
 gpu = (args.device == 'gpu')
 
 batch_size = 250 # XXX
@@ -38,14 +44,24 @@ buffer_size = 1000 * 2000
 if not os.path.isdir('data'):
     os.mkdir('data')
 
-if not os.path.isfile('data/path.json'):
-  root = '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/'
-  path = {'root': root,
-          'train': '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/en.train.ds.json',
-          'dev': '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/en.dev.ds.json',
-          'test': '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/en.test.ds.json'}
-  with open('data/path.json', 'w') as f:
-    json.dump(path, f, indent=4, sort_keys=True)
+if not os.path.isfile('data/{}_path.json'.format(args.dataset)):
+  if args.dataset == 'wikipedia':
+    root = '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/'
+    path = {'root': root,
+            'train': '{}/en.train.ds.json'.format(root),
+            'dev': '{}/en.dev.ds.json'.format(root),
+            'test': '{}/en.test.ds.json'.format(root)}
+    with open('data/path.json', 'w') as f:
+      json.dump(path, f, indent=4, sort_keys=True)
+  elif args.dataset == 'wikipedia+kbp':
+    root = '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/'
+    path = {'root': root,
+            'train': '{}/en.train.ds.json:{}/kbp2019.json'.format(root, root),
+            'dev': '{}/en.dev.ds.json'.format(root),
+            'test': '{}/en.test.ds.json'.format(root)}
+    with open('data/path.json', 'w') as f:
+      json.dump(path, f, indent=4, sort_keys=True)
+
 else:
   with open('data/path.json', 'r') as f:
     path = json.load(f)
@@ -101,10 +117,9 @@ else:
     word_vocab_in_data = vocabs['word']
     print(len('Total word vocabs in data={}'.format(word_vocab_in_data)))
  
-# XXX word_embed, word_vocab = load_word_embed(embed_file,
 word_embed, word_vocab = load_word_embed(embed_file,
                                 embed_dim,
-                                vocab_in_data=word_vocab_in_data, # XXX
+                                vocab_in_data=word_vocab_in_data,
                                 skip_first=True)
 print('Finish loading word embedding in {} s'.format(time.time()-begin_time))
 
@@ -117,16 +132,27 @@ if not os.path.isfile('{}/vocabs.json'.format(args.exp_dir)):
   label_vocab = get_label_vocab(train_file, dev_file, test_file)
   label_num = len(label_vocab)
   vocabs = {'word': word_vocab_in_data, 'label': label_vocab}
-  with open('{}/vocabs.json'.format(args.exp_dir), 'w') as f: # XXX
+  with open('{}/vocabs.json'.format(args.exp_dir), 'w') as f:
     json.dump(vocabs, f, sort_keys=True, indent=4)
 vocabs['word'] = word_vocab # XXX Overwrite the word indices to be consistent with the embedding matrix; Need to find a better way to handle words without embeddings
+
 print('Finish collecting fine-grained entity labels in {} s'.format(time.time()-begin_time))
 
 # Build the model
 print('Building the model')
-linear = torch.nn.Linear(embed_dim * 2, label_num)
-lstm = torch.nn.LSTM(embed_dim, embed_dim, batch_first=True)
-model = LstmFet(word_embed, lstm, linear, embed_dropout, lstm_dropout)
+if loss_type == 'lstm':
+  linear = torch.nn.Linear(embed_dim * 2, label_num)
+  lstm = torch.nn.LSTM(embed_dim, embed_dim, batch_first=True)
+  model = LstmFet(word_embed, lstm, linear, embed_dropout, lstm_dropout)
+elif loss_type == 'lstm_joint_embed':
+  linear = torch.nn.Linear(embed_dim * 2, label_num)
+  lstm = torch.nn.LSTM(embed_dim, embed_dim, batch_first=True)
+  model = LstmFet(word_embed, lstm, linear, embed_dropout, lstm_dropout)
+  label_vocab_lemmatized = {word[:-9].lower():idx for idx, word in enumerate(label_vocab)}
+  print(label_vocab_lemmatized.keys())
+  label_to_word = [vocabs['word'].get(word, 0) for word in sorted(label_vocab_lemmatized, key=lambda x:label_vocab_lemmatized[x])]
+  # XXX model = JointEmbedLstmFet(word_embed, lstm, linear, label_to_word, embed_dropout, lstm_dropout)
+
 if gpu:
     model.cuda()
 
