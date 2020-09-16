@@ -36,7 +36,7 @@ def load_word_embed(path: str,
             if not word in vocab_in_data:
               continue 
 
-            # if len(vocab) > 1000: # XXX
+            # if len(vocab) > 100: # XXX
             #   break 
             print('Embedding {} for {}'.format(len(vocab), word))
             vocab[word] = len(vocab)

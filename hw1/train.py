@@ -21,6 +21,7 @@ def print_result(rst, vocab, mention_ids):
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--exp_dir', '-e', type=str, help='Experimental directory')
 parser.add_argument('--device', choices={'gpu', 'cpu'}, default='gpu', help='Use CPU or GPU')
+parser.add_argument('--embedding_type', choices={'cbow', 'multilingual-cbow'}, default='cbow', help='Embedding type')
 parser.add_argument('--downsample_size', type=int, default=-1, help='Size of the downsampled dataset. -1 if using the whole dataset')
 args = parser.parse_args()
 if not os.path.isdir('exp'):
@@ -29,7 +30,7 @@ if not os.path.isdir(args.exp_dir):
     os.mkdir(args.exp_dir)
 gpu = (args.device == 'gpu')
 
-batch_size = 1000
+batch_size = 250 # XXX
 # Because FET datasets are usually large (1m+ sentences), it is infeasible to 
 # load the whole dataset into memory. We read the dataset in a streaming way.
 buffer_size = 1000 * 2000
@@ -68,7 +69,10 @@ train_file = path['train']
 dev_file = path['dev'] 
 test_file = path['test'] 
 
-embed_file = '{}/cc.en.300.vec'.format(root) # enwiki.cbow.100d.case.txt
+if args.embedding_type == 'cbow':
+    embed_file = '{}/cc.en.300.vec'.format(root) # enwiki.cbow.100d.case.txt
+elif args.embedding_type == 'multilingual-cbow':
+    embed_file = '{}/wiki.multi.en.vec'.format(root)
 embed_dim = 300 # 100
 embed_dropout = 0.5
 lstm_dropout = 0.5
@@ -102,7 +106,6 @@ word_embed, word_vocab = load_word_embed(embed_file,
                                 embed_dim,
                                 vocab_in_data=word_vocab_in_data, # XXX
                                 skip_first=True)
-vocabs['word'] = word_vocab # XXX Overwrite the word indices to be consistent with the embedding matrix; Need to find a better way to handle words without embeddings
 print('Finish loading word embedding in {} s'.format(time.time()-begin_time))
 
 # Scan the whole dateset to get the label set. This step may take a long 
@@ -116,6 +119,7 @@ if not os.path.isfile('{}/vocabs.json'.format(args.exp_dir)):
   vocabs = {'word': word_vocab_in_data, 'label': label_vocab}
   with open('{}/vocabs.json'.format(args.exp_dir), 'w') as f: # XXX
     json.dump(vocabs, f, sort_keys=True, indent=4)
+vocabs['word'] = word_vocab # XXX Overwrite the word indices to be consistent with the embedding matrix; Need to find a better way to handle words without embeddings
 print('Finish collecting fine-grained entity labels in {} s'.format(time.time()-begin_time))
 
 # Build the model
@@ -182,6 +186,9 @@ for epoch in range(max_epoch):
                 dev_results['gold'].extend(labels.int().tolist())
                 dev_results['pred'].extend(predictions.int().tolist())
                 dev_results['id'].extend(mention_ids)
+
+            with open('{}/dev_results_{}.json'.format(args.exp_dir, epoch), 'w') as f:
+                json.dump(dev_results, f, indent=4, sort_keys=True)  
             precision, recall, fscore = calculate_macro_fscore(dev_results['gold'],
                                                             dev_results['pred'])
             print('Dev set (Macro): P: {:.2f}, R: {:.2f}, F: {:.2f}'.format(
@@ -211,17 +218,15 @@ for epoch in range(max_epoch):
                 test_results['id'].extend(mention_ids)
             precision, recall, fscore = calculate_macro_fscore(test_results['gold'],
                                                             test_results['pred'])
+            with open('{}/test_results_{}.json'.format(args.exp_dir, epoch), 'w') as f:
+                json.dump(test_results, f, indent=4, sort_keys=True)
             print('Test set (Macro): P: {:.2f}, R: {:.2f}, F: {:.2f}'.format(
                 precision, recall, fscore))
             
             if best_dev:
                 best_test_score = fscore
         
-    torch.save(model.state_dict(), '{}/model_{}.pth'.format(args.exp_dir, epoch))
-    with open('{}/dev_results_{}.json'.format(args.exp_dir, epoch), 'w') as f:
-        json.dump(dev_results, f, indent=4, sort_keys=True)
-    with open('{}/test_results_{}.json'.format(args.exp_dir, epoch), 'w') as f:
-        json.dump(test_results, f, indent=4, sort_keys=True)
+    torch.save(model.state_dict(), '{}/model.pth'.format(args.exp_dir, epoch))
     print()
     print('Loss: {:.4f}'.format(sum(losses) / len(losses)))
 
