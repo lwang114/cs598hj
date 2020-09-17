@@ -51,40 +51,55 @@ if not os.path.isfile('data/{}_path.json'.format(args.dataset)):
             'train': '{}/en.train.ds.json'.format(root),
             'dev': '{}/en.dev.ds.json'.format(root),
             'test': '{}/en.test.ds.json'.format(root)}
-    with open('data/path.json', 'w') as f:
-      json.dump(path, f, indent=4, sort_keys=True)
   elif args.dataset == 'wikipedia+kbp':
     root = '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/'
     path = {'root': root,
             'train': '{}/en.train.ds.json:{}/kbp2019.json'.format(root, root),
             'dev': '{}/en.dev.ds.json'.format(root),
             'test': '{}/en.test.ds.json'.format(root)}
-    with open('data/path.json', 'w') as f:
-      json.dump(path, f, indent=4, sort_keys=True)
+  with open('data/{}_path.json'.format(args.dataset), 'w') as f:
+    json.dump(path, f, indent=4, sort_keys=True)
 
 else:
-  with open('data/path.json', 'r') as f:
+  with open('data/{}_path.json'.format(args.dataset), 'r') as f:
     path = json.load(f)
  
 downsample_size = args.downsample_size
 root = path['root']
-if downsample_size > 0:
-  with open(path['train'], 'r') as f_tr,\
-       open('{}/train_subset_{}.json'.format(root, downsample_size), 'w') as f_subtr:
-    for ex, line in enumerate(f_tr):
-      if ex > downsample_size:
-        break
-      print('Loading sentence {}'.format(ex))
-      train_dict = json.loads(line)
-      f_subtr.write('{}\n'.format(json.dumps(train_dict)))
-  path['train'] = '{}/train_subset_{}.json'.format(root, downsample_size)
-  path['dev'] = '{}/train_subset_{}.json'.format(root, downsample_size)
-  path['test'] = '{}/train_subset_{}.json'.format(root, downsample_size)
-
 train_file = path['train'] 
 dev_file = path['dev'] 
 test_file = path['test'] 
 
+if downsample_size > 0:
+  if ':' in train_file:
+      with open('{}/train_subset_{}.json'.format(root, downsample_size), 'w') as f_subtr:
+          for cur_train_file in train_file.split(':'):
+              with open(cur_train_file) as f_tr:
+                  for ex, line in enumerate(f_tr):
+                      if ex > downsample_size:
+                          break
+                      print('Loading sentence {}'.format(ex))
+                      f_subtr.write(line)
+  else:
+    with open(train_file, 'r') as f_tr,\
+         open('{}/train_subset_{}.json'.format(root, downsample_size), 'w') as f_subtr:
+        for ex, line in enumerate(f_tr):
+            if ex > downsample_size:
+                break
+            print('\rLoading sentence {}'.format(ex), end='')
+            train_dict = json.loads(line)
+            f_subtr.write('{}\n'.format(json.dumps(train_dict)))
+  train_file = '{}/train_subset_{}.json'.format(root, downsample_size)
+  dev_file = '{}/train_subset_{}.json'.format(root, downsample_size)
+  test_file = '{}/train_subset_{}.json'.format(root, downsample_size)
+elif ':' in train_file:
+    with open('{}/train_combined_{}.json'.format(root, args.dataset), 'w') as f_trc:
+        for cur_train_file in train_file.split(':'):
+            with open(cur_train_file) as f_tr:
+                for ex, line in enumerate(f_tr):
+                    print('\rLoading sentence {} in {}'.format(ex, cur_train_file), end='')
+                    f_trc.write(line)
+    train_file = '{}/train_combined_{}.json'.format(root, args.dataset)
 if args.embedding_type == 'cbow':
     embed_file = '{}/cc.en.300.vec'.format(root) # enwiki.cbow.100d.case.txt
 elif args.embedding_type == 'multilingual-cbow':
@@ -135,22 +150,23 @@ if not os.path.isfile('{}/vocabs.json'.format(args.exp_dir)):
   with open('{}/vocabs.json'.format(args.exp_dir), 'w') as f:
     json.dump(vocabs, f, sort_keys=True, indent=4)
 vocabs['word'] = word_vocab # XXX Overwrite the word indices to be consistent with the embedding matrix; Need to find a better way to handle words without embeddings
-
+print('Number of fine-grained entity labels = {}'.format(len(vocabs['label'])))
 print('Finish collecting fine-grained entity labels in {} s'.format(time.time()-begin_time))
+
 
 # Build the model
 print('Building the model')
-if loss_type == 'lstm':
+if args.model_type == 'lstm':
   linear = torch.nn.Linear(embed_dim * 2, label_num)
   lstm = torch.nn.LSTM(embed_dim, embed_dim, batch_first=True)
   model = LstmFet(word_embed, lstm, linear, embed_dropout, lstm_dropout)
-elif loss_type == 'lstm_joint_embed':
+elif args.model_type == 'lstm_joint_embed':
   linear = torch.nn.Linear(embed_dim * 2, label_num)
   lstm = torch.nn.LSTM(embed_dim, embed_dim, batch_first=True)
   model = LstmFet(word_embed, lstm, linear, embed_dropout, lstm_dropout)
   label_vocab_lemmatized = {word[:-9].lower():idx for idx, word in enumerate(label_vocab)}
-  print(label_vocab_lemmatized.keys())
   label_to_word = [vocabs['word'].get(word, 0) for word in sorted(label_vocab_lemmatized, key=lambda x:label_vocab_lemmatized[x])]
+  load_label_embed(label_vocab)
   # XXX model = JointEmbedLstmFet(word_embed, lstm, linear, label_to_word, embed_dropout, lstm_dropout)
 
 if gpu:

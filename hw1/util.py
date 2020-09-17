@@ -38,20 +38,21 @@ def load_word_embed(path: str,
 
             # if len(vocab) > 100: # XXX
             #   break 
-            print('Embedding {} for {}'.format(len(vocab), word))
+            print('\rEmbedding {} for {}'.format(len(vocab), word), end='')
             vocab[word] = len(vocab)
             embed = [float(x) for x in segments[1:]]
             embed_matrix.append(embed)
-    print('Loaded %d word embeddings' % (len(embed_matrix) - 1))
+    print('\rLoaded %d word embeddings' % (len(embed_matrix) - 1))
             
     embed_matrix = torch.FloatTensor(embed_matrix)
     
     word_embed = nn.Embedding.from_pretrained(embed_matrix,
                                               freeze=freeze,
                                               padding_idx=0)
-    print(word_embed)
     return word_embed, vocab
- 
+
+def load_label_embed(): # XXX
+    
 def get_word_vocab(*paths: str) -> Dict[str, int]:
     """Generate a word vocab from data files.
     
@@ -64,13 +65,23 @@ def get_word_vocab(*paths: str) -> Dict[str, int]:
     
     """
     word_set = set()
+            
     for path in paths:
-      with open(path) as r:
-        for line in r:
-          instance = json.loads(line)
-          tokens = instance['tokens']
-          tokens += [token.lower() for token in tokens] 
-          word_set.update(tokens)
+      if ':' in path:
+        for subpath in path.split(':'):
+            with open(subpath) as r:
+                for line in r:
+                    instance = json.loads(line)
+                    tokens = instance['tokens']
+                    tokens += [token.lower() for token in tokens] 
+                    word_set.update(tokens)
+      else:
+          with open(path) as r:
+              for line in r:
+                  instance = json.loads(line)
+                  tokens = instance['tokens']
+                  tokens += [token.lower() for token in tokens] 
+                  word_set.update(tokens)
 
     return {word: idx for idx, word in enumerate(word_set)}
 
