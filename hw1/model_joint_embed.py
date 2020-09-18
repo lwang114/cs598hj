@@ -9,19 +9,17 @@ class JointEmbedLstmFet(nn.Module):
                  word_embed: nn.Embedding,
                  lstm: nn.LSTM,
                  output_linear: nn.Linear,
-                 label_to_word: list,
+                 label_embed_matrix: torch.Tensor,
                  word_embed_dropout: float = 0,
                  lstm_dropout: float = 0):
         super().__init__()
         
         self.word_embed = word_embed
+        self.label_embed_matrix = label_embed_matrix
         self.lstm = lstm
         self.output_linear = output_linear
         self.word_embed_dropout = nn.Dropout(word_embed_dropout)
         self.lstm_dropout = nn.Dropout(lstm_dropout)
-        self.label_to_word = label_to_word
-        # TODO Generate label embeddings
-        self.label_repr = self.word_embed(torch.LongTensor([label_to_word[i_label] for i_label in self.label_to_word]).to(word_embed.device))
         # self.criterion = nn.MultiLabelSoftMarginLoss()
     
     def forward_nn(self,
@@ -74,7 +72,7 @@ class JointEmbedLstmFet(nn.Module):
         # Linear classifier
         # scores = self.output_linear(combine_repr)
         # TODO Compute dot-product similarity scores between the mention embedding and each label embedding 
-        scores = torch.matmul(combine_repr, self.label_repr.T)
+        scores = torch.matmul(combine_repr, self.label_embed_matrix.T)
         return scores
     
     def forward(self,

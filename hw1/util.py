@@ -51,8 +51,44 @@ def load_word_embed(path: str,
                                               padding_idx=0)
     return word_embed, vocab
 
-def load_label_embed(): # XXX
+def load_label_embed(label_vocabs: Dict[str, int], 
+                     word_vocabs: Dict[str, int],
+                     word_embed: nn.Embedding,
+                     freeze: bool = False) -> nn.Embedding:
+    """Extract label embeddings from pretrained word embeddings
     
+    Args:
+        label_vocabs (dict): {label: idx for idx, label in enumerate(labels)}
+        word_vocabs (dict): {word: idx for idx, word in enumerate(vocabs)}
+        word_embed: Embedding object storing the pretrained word embeddings
+    
+    Returns:
+        torch.Tensor: Tensor storing the label word embeddings 
+    """
+    label_embed_matrix = []
+    for i_label, label in enumerate(sorted(label_vocabs, key=lambda x:label_vocabs[x])):
+      label_word = label[:-9]
+      nchars = len(label)
+      if label_word in word_vocabs:
+        print('Words for label {}: {}'.format(i_label, label_word))
+        label_embed_matrix.append(word_embed(word_vocabs[label_word]))
+      else:
+        found = False
+        for i_char in range(nchars):    
+          if label_word[:i_char] in word_vocabs and label_word[i_char:] in word_vocabs:
+            w1 = label_word[:i_char]
+            w2 = label_word[i_char:]
+            print('Words for label {}: {} {}'.format(i_label, label_word[:i_char], label_word[i_char:]))
+            
+            label_embed_matrix.append(torch.div(word_embed(word_vocabs[w1]) + word_embed(word_vocabs[w2]), 2.))
+            break
+
+        if not found:
+          print('Embedding not found for label {}'.format(i_label))
+          label_embed_matrix.append(word_embed(0).unsqueeze(0))   
+    
+    return torch.cat(label_embed_matrix, axis=0)
+
 def get_word_vocab(*paths: str) -> Dict[str, int]:
     """Generate a word vocab from data files.
     
