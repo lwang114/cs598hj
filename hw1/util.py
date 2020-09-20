@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import logging
 from typing import List, Dict, Tuple
-
+import numpy as np
 
 def load_word_embed(path: str,
                     dimension: int,
@@ -67,28 +67,30 @@ def load_label_embed(label_vocabs: Dict[str, int],
     """
     label_embed_matrix = []
     for i_label, label in enumerate(sorted(label_vocabs, key=lambda x:label_vocabs[x])):
-      label_word = label[:-9]
-      nchars = len(label)
+      label_word = label[:-9].lower()
+      nchars = len(label_word)
       if label_word in word_vocabs:
-        print('Words for label {}: {}'.format(i_label, label_word))
-        label_embed_matrix.append(word_embed(word_vocabs[label_word]))
+        label_embed_matrix.append(word_embed(torch.LongTensor([word_vocabs.get(label_word)])))
       else:
         found = False
-        for i_char in range(nchars):    
+        for i_char in range(nchars):
           if label_word[:i_char] in word_vocabs and label_word[i_char:] in word_vocabs:
             w1 = label_word[:i_char]
             w2 = label_word[i_char:]
             print('Words for label {}: {} {}'.format(i_label, label_word[:i_char], label_word[i_char:]))
-            
-            label_embed_matrix.append(torch.div(word_embed(word_vocabs[w1]) + word_embed(word_vocabs[w2]), 2.))
+            v1 = torch.LongTensor([word_vocabs.get(w1)])
+            v2 = torch.LongTensor([word_vocabs.get(w2)])
+            label_embed_matrix.append(torch.mean(torch.cat([word_embed(v1), word_embed(v2)]), keepdim=True))
+            found = True
             break
 
         if not found:
-          print('Embedding not found for label {}'.format(i_label))
-          label_embed_matrix.append(word_embed(0).unsqueeze(0))   
+          print('Embedding not found for label {}: {}'.format(i_label, label_word))
+          v = word_embed(torch.LongTensor([0]))
+          label_embed_matrix.append(v)
+    label_embed_matrix = torch.cat(label_embed_matrix).data
+    return label_embed_matrix
     
-    return torch.cat(label_embed_matrix, axis=0)
-
 def get_word_vocab(*paths: str) -> Dict[str, int]:
     """Generate a word vocab from data files.
     
@@ -183,17 +185,24 @@ def calculate_macro_fscore(golds: List[List[int]],
 
     return precision * 100.0, recall * 100.0, fscore * 100.0
 
-''' TODO
-def max_margin_rank_loss(scores: torch.Tensor,
+def multi_max_margin_rank_loss(scores: torch.Tensor,
                          labels: torch.Tensor,
-                         margin: int = 1.):
-    loss = torch.zeros(1)
+                         margin: float = 1.) -> torch.Tensor:
+    """Compute the multi-margin rank loss
+    
+    Args:
+        scores (Tensor): B x K tensor storing the class similarity scores
+        labels (Tensor): B x K tensor storing the binary class label vecotrs
+    
+    Returns:
+        torch.Tensor: Scalar storing the average max margin rank loss   
+    """
     B = scores.size(0)
-    for b in range(B):
-      positive_indices = np.nonzeros(labels[b].cpu().numpy())[0]
-      negative_indices = np.nonzeros(1. - labels[b].cpu().numpy())[0]
-      for i_pos in positive_indices:
-        for i_neg in negative_indices:
-          loss += torch.max(scores[b][i_neg] - scores[b][i_pos] + margin, 0.)
-    return loss / B
-'''   
+    loss = torch.zeros(1, device=scores.device, requires_grad=True)
+    score_diffs = (scores.unsqueeze(1) - scores.unsqueeze(2))
+    thres = torch.FloatTensor(np.zeros((B, 1, 1))).to(scores.device)
+    score_diffs_thresholded = torch.max(score_diffs + margin, thres)
+    print(score_diffs.size())
+    loss = loss + torch.sum(torch.sum(score_diffs_thresholded * labels.unsqueeze(2), axis=-1) * (1 - labels).unsqueeze(1))
+    print(loss)
+    return loss

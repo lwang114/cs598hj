@@ -7,8 +7,9 @@ import argparse
 
 from data import FetDataset
 from model import LstmFet
-# from model_joint_embed import JointEmbedLstmFet
+from model_joint_embed import JointEmbedLstmFet
 from util import (load_word_embed,
+                  load_label_embed,
                   get_word_vocab,
                   get_label_vocab,
                   calculate_macro_fscore)
@@ -161,17 +162,17 @@ if args.model_type == 'lstm':
   lstm = torch.nn.LSTM(embed_dim, embed_dim, batch_first=True)
   model = LstmFet(word_embed, lstm, linear, embed_dropout, lstm_dropout)
 elif args.model_type == 'lstm_joint_embed':
-  linear = torch.nn.Linear(embed_dim * 2, label_num)
+  output_linear = torch.nn.Linear(embed_dim * 2, label_num)
+  hidden_linear = torch.nn.Linear(embed_dim * 2, embed_dim)
   lstm = torch.nn.LSTM(embed_dim, embed_dim, batch_first=True)
-  model = LstmFet(word_embed, lstm, linear, embed_dropout, lstm_dropout)
-  label_vocab_lemmatized = {word[:-9].lower():idx for idx, word in enumerate(label_vocab)}
-  label_to_word = [vocabs['word'].get(word, 0) for word in sorted(label_vocab_lemmatized, key=lambda x:label_vocab_lemmatized[x])]
-  load_label_embed(label_vocab)
-  # XXX model = JointEmbedLstmFet(word_embed, lstm, linear, label_to_word, embed_dropout, lstm_dropout)
+  label_embed_matrix = load_label_embed(label_vocab, word_vocab, word_embed)
+  if gpu:
+      label_embed_matrix = label_embed_matrix.cuda()
+  model = JointEmbedLstmFet(word_embed, lstm, hidden_linear, output_linear, label_embed_matrix, embed_dropout, lstm_dropout)
 
 if gpu:
     model.cuda()
-
+    
 # Optimizer: Adam with decoupled weight decay
 optimizer = torch.optim.AdamW(filter(lambda x: x.requires_grad,
                                      model.parameters()),

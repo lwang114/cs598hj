@@ -2,12 +2,13 @@ import torch
 import torch.nn as nn
 import torch.nn.utils.rnn as R
 from typing import Tuple
-from util import max_margin_rank_loss
+from util import multi_max_margin_rank_loss
 
 class JointEmbedLstmFet(nn.Module):
     def __init__(self,
                  word_embed: nn.Embedding,
                  lstm: nn.LSTM,
+                 hidden_linear: nn.Linear,
                  output_linear: nn.Linear,
                  label_embed_matrix: torch.Tensor,
                  word_embed_dropout: float = 0,
@@ -17,11 +18,12 @@ class JointEmbedLstmFet(nn.Module):
         self.word_embed = word_embed
         self.label_embed_matrix = label_embed_matrix
         self.lstm = lstm
+        self.hidden_linear = hidden_linear
         self.output_linear = output_linear
         self.word_embed_dropout = nn.Dropout(word_embed_dropout)
         self.lstm_dropout = nn.Dropout(lstm_dropout)
-        # self.criterion = nn.MultiLabelSoftMarginLoss()
-    
+        self.criterion = nn.MultiLabelSoftMarginLoss()
+        
     def forward_nn(self,
                    inputs: torch.Tensor,
                    mention_mask: torch.Tensor,
@@ -67,12 +69,11 @@ class JointEmbedLstmFet(nn.Module):
         
         # Concatenate mention and context representations
         combine_repr = torch.cat([mention_repr, context_repr], dim=1)
-        print('combine_repr.size(): ', combine_repr.size())
-
+        latent_concept_repr = 0.1*self.hidden_linear(combine_repr)
+        
         # Linear classifier
-        # scores = self.output_linear(combine_repr)
-        # TODO Compute dot-product similarity scores between the mention embedding and each label embedding 
-        scores = torch.matmul(combine_repr, self.label_embed_matrix.T)
+        scores = self.output_linear(combine_repr) + torch.matmul(latent_concept_repr, self.label_embed_matrix.T)
+        
         return scores
     
     def forward(self,
@@ -105,7 +106,8 @@ class JointEmbedLstmFet(nn.Module):
               the batch size and M is the number of labels.
         """
         scores = self.forward_nn(inputs, mention_mask, context_mask, seq_lens)
-        loss = max_margin_rank_loss(scores, labels) # TODO Margin loss # self.criterion(scores, labels)
+        loss = self.criterion(scores, labels)
+        
         return loss, scores
     
     def predict(self,
