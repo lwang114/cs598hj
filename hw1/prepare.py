@@ -5,22 +5,23 @@ from nltk.parse import stanford
 from nltk.tokenize import sent_tokenize 
 from copy import deepcopy
 
-def extract_dependency_parse(data_file, out_file, dep_parser_file):
+
+def extract_dependency_parse(data_file, out_file, dep_parser_path='/Users/liming/nltk_data/stanford-parser-full-2018-10-17/edu/stanford/nlp/models/parser/nndep/english_UD.gz'):
   # Load the dependency parser
-  dep_parser = stanford.StanfordParser(model_path='/Users/liming/nltk_data/stanford-parser-full-2018-10-17/')
+  dep_parser = stanford.StanfordDependencyParser(path_to_models_jar=dep_parser_path)
   
   with open(data_file, 'r') as f_in,\
-       open('{}_parse_trees.json'.format(out_file), 'w') as f_out_tree:
+       open('{}_parse_trees.json'.format(out_file), 'w') as f_out_tree,\
        open('{}_adjacency_matrices.json'.format(out_file), 'w') as f_out_adj:  
       for ex, line in enumerate(f_in):
         if ex > 30: # XXX
           break 
         data_dict = json.loads(line)
-        sent = sent_tokenize(data_dict['tokens'])
+        sent = sent_tokenize(' '.join(data_dict['tokens']))
         
         sent_len = len(sent)
         # Parse the sentence
-        parsed_sent = dep_parser.raw_parse_sent(sent)
+        parsed_sent = dep_parser.raw_parse_sents(sent)
         tree = Tree.fromstring(str(parsed_sent))
         queue = [tree]
         A = np.zeros((sent_len, sent_len))
@@ -88,32 +89,14 @@ def prepare_iob(data_file, out_file):
 if __name__ == '__main__':
   if not os.path.isdir('data'):
     os.mkdir('data')
-  elif not os.path.isfile('data/path.json'):
-    path = {'train': '/ws/ifp-53_2/hasegawa/lwang114/fall2020/en.train.json',
-            'dev': '/ws/ifp-53_2/hasegawa/lwang114/fall2020/en.dev.json',
-            'test': '/ws/ifp-53_2/hasegawa/lwang114/fall2020/en.test.json'}
+  if not os.path.isfile('data/path.json'):
+    path = {'train': 'kbp2019.json',
+            'dev': 'kbp2019.json', # '/ws/ifp-53_2/hasegawa/lwang114/fall2020/en.dev.json',
+            'test': 'kbp2019.json'} # '/ws/ifp-53_2/hasegawa/lwang114/fall2020/en.test.json'}
     with open('data/path.json', 'w') as f:
       json.dump(path, f, indent=4, sort_keys=True)
   else:
     with open('data/path.json', 'r') as f:
       path = json.load(f)
-
-  downsample_size = 10
-  with open(path['dev'], 'r') as f_tr,\
-       open(path['test'], 'r') as f_tx:
-    train_dict = [json.loads(line) for line in f_tr]
-    test_dict = [json.loads(line) for line in f_tx]
   
-  if downsample_size > 0:
-    with open('data/train_subset.json', 'w') as f_subtr,\
-         open('data/test_subset.json', 'w') as f_subtx:
-      for cur_train_dict in train_dict[:downsample_size]:
-        f_subtr.write('{}\n'.format(json.dumps(cur_train_dict)))
-
-      for cur_test_dict in test_dict[:downsample_size]:
-        f_subtx.write('{}\n'.format(json.dumps(cur_test_dict)))
-    path['train'] = 'data/train_subset.json'
-    path['test'] = 'data/test_subset.json' 
-  
-  prepare_iob(path['train'], 'data/train_iob')
-  prepare_iob(path['test'], 'data/test_iob') 
+  extract_dependency_parse(path['train'], out_file='kbp')
