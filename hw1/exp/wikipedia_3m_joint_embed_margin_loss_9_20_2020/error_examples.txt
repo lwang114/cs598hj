@@ -1,0 +1,1200 @@
+* Missile guidance
+Mention: Missile guidance 1 3
+Label: Rocket104099429
+Gold: Rocket104099429
+Pred: Rocket104099429 Missile103773504
+
+* Embarrass
+Mention: Embarrass 1 2
+Label: GeographicalArea108574314 Village108672738 Region108630985
+Gold: GeographicalArea108574314 Region108630985 Village108672738
+Pred: GeographicalArea108574314
+
+* Prentice
+Mention: Prentice 1 2
+Label: UrbanArea108675967 GeographicalArea108574314 Town108665504 Region108630985
+Gold: UrbanArea108675967 GeographicalArea108574314 Town108665504 Region108630985
+Pred: Enterprise108056231
+
+This is now no longer the case , as a traffic light has been installed on U . S . Route 360 at St . Stephen's Church .
+Mention: U.S. Route 360 16 22
+Label: Highway103519981 Way104564698
+Gold: Way104564698 Highway103519981
+Pred: Way104564698
+
+* Cas Walker ( 1902 – 1998 ) , grocery store magnate and politician
+Mention: Cas Walker 1 3
+Label: Politician110451263 Mayor110303814
+Gold: Mayor110303814 Politician110451263
+Pred: Politician110451263
+
+* Bridgewater
+Mention: Bridgewater 1 2
+Label: GeographicalArea108574314 Region108630985 Township108672199
+Gold: GeographicalArea108574314 Region108630985 Township108672199
+Pred: Region108630985
+
+* Boggs
+Mention: Boggs 1 2
+Label: GeographicalArea108574314 Region108630985 Township108672199
+Gold: GeographicalArea108574314 Region108630985 Township108672199
+Pred: Township108672199
+
+This was the second national leadership position Johnson assumed in 2012 , as he was previously elected to the first vice president of the National Conference of Black Mayors , where he assumed the presidency in 2013 .
+Mention: National Conference of Black Mayors 24 29
+Label: Politician110451263 Mayor110303814
+Gold: Mayor110303814 Politician110451263
+Pred: Council108310949
+
+One of the earliest surviving cranes in England , it was built some time about 1875 – 1884 for Mount Sion Bleach Works by Thomas Smith & Sons of Rodley and was used to unload coal boxes from barges into the yard below the canal .
+Mention: Rodley 29 30
+Label: GeographicalArea108574314 Village108672738 Region108630985
+Gold: GeographicalArea108574314 Region108630985 Village108672738
+Pred: UrbanArea108675967 GeographicalArea108574314 Town108665504 Region108630985 Village108672738
+
+The principal shopping street in Albany is Solano Avenue , which cuts across the city from west to east .
+Mention: Solano Avenue 7 9
+Label: Street104334599 Way104564698 Region108630985
+Gold: Way104564698 Region108630985 Street104334599
+Pred: Way104564698 Street104334599
+
+File : WellsFargoJaxFL . JPG | Wells Fargo Center ( 1974 )
+Mention: Wells Fargo Center 6 9
+Label: OfficeBuilding103842012 Structure104341686 Building102913152
+Gold: Structure104341686 OfficeBuilding103842012 Building102913152
+Pred: Structure104341686 Building102913152
+
+* Thorn
+Mention: Thorn 1 2
+Label: Region108630985 Township108672199
+Gold: Region108630985 Township108672199
+Pred: Village108672738
+
+* Bartlow
+Mention: Bartlow 1 2
+Label: Region108630985 Township108672199
+Gold: Region108630985 Township108672199
+Pred: Village108672738
+
+from : 01 / 10 / 1926 till : 17 / 06 / 1927 color : da - pres text : " Koo " fontsize : 10
+Mention: Koo 22 23
+Label: Ambassador109787534
+Gold: Ambassador109787534
+Pred: Politician110451263
+
+Nyōgo : Yoshida Sadafusa's daughter
+Mention: Nyōgo 0 1
+Label: GeographicPoint108578706 Address108491027
+Gold: Address108491027 GeographicPoint108578706
+Pred: Region108630985
+
+* Linden , Texas
+Mention: Linden, Texas 1 4
+Label: UrbanArea108675967 GeographicalArea108574314 Region108630985 City108524735
+Gold: UrbanArea108675967 GeographicalArea108574314 City108524735 Region108630985
+Pred: UrbanArea108675967
+
+The town of Sebastopol formed in the 1850s with a U . S . Post Office and as a small trade center for the farmers of the surrounding agricultural region .
+Mention: U.S. Post Office 10 16
+Label: Agency108337324
+Gold: Agency108337324
+Pred: Building102913152
+
+In 1820 a branch of the canal known as Otter Dock was opened .
+Mention: Otter Dock 9 11
+Label: Structure104341686 Way104564698
+Gold: Structure104341686 Way104564698
+Pred: Structure104341686
+
+1855 : Georgian coast : Omar Pasha , the Turkish commander at Crimea had long wanted to land in Georgia , but the western powers vetoed it .
+Mention: Omar Pasha 5 7
+Label: Governor110140314 MilitaryOfficer110317007 Politician110451263 Serviceman110582746
+Gold: Governor110140314 MilitaryOfficer110317007 Politician110451263 Serviceman110582746
+Pred: Serviceman110582746
+
+* Fifty Lakes
+Mention: Fifty Lakes 1 3
+Label: UrbanArea108675967 GeographicalArea108574314 Region108630985 City108524735
+Gold: UrbanArea108675967 GeographicalArea108574314 City108524735 Region108630985
+Pred: Region108630985
+
+* Leon Township
+Mention: Leon Township 1 3
+Label: GeographicalArea108574314 Region108630985 Township108672199
+Gold: GeographicalArea108574314 Region108630985 Township108672199
+Pred: Township108672199
+
+* Harrietta
+Mention: Harrietta 1 2
+Label: UrbanArea108675967 GeographicalArea108574314 Village108672738 Region108630985 City108524735
+Gold: UrbanArea108675967 GeographicalArea108574314 City108524735 Region108630985 Village108672738
+Pred: Village108672738
+
+* Kinn ( Kinden )
+Mention: Kinn (Kinden) 1 5
+Label: Structure104341686 Building102913152
+Gold: Structure104341686 Building102913152
+Pred: Village108672738 Land109334396
+
+Ma won with 7 , 659 , 014 votes against Hsieh's 5 , 444 , 949 votes .
+Mention: Hsieh's 10 11
+Label: Politician110451263 Mayor110303814
+Gold: Mayor110303814 Politician110451263
+Pred: Association108049401
+
+* The Navajo ( sleeper car ) , a sleeping car on the Super Chief passenger train
+Mention: The Navajo (sleeper car) 1 7
+Label: Train104468005
+Gold: Train104468005
+Pred: Train104468005 WheeledVehicle104576211 Car102958343
+
+* Tooting
+Mention: Tooting 1 2
+Label: RailwayStation104049098
+Gold: RailwayStation104049098
+Pred: GeographicalArea108574314 Region108630985
+
+Smaller concentrations of Russian and Ukrainian Americans are scattered elsewhere in southern Brooklyn , including Bay Ridge , Bensonhurst , Coney Island and Mill Basin .
+Mention: Mill Basin 23 25
+Label: Structure104341686 Bridge102898711 Region108630985
+Gold: Structure104341686 Region108630985 Bridge102898711
+Pred: GeographicalArea108574314
+
+* Henry Pierson Crowe ; US Marine
+Mention: Henry Pierson Crowe 1 4
+Label: Policeman110448983 MilitaryOfficer110317007 Serviceman110582746
+Gold: MilitaryOfficer110317007 Policeman110448983 Serviceman110582746
+Pred: Serviceman110582746
+
+In the summer of 1913 , the world's first heavier - than - air airline service opened in the form of a biplane flying boat named Lark of Duluth , offering joyrides over the Duluth harbor .
+Mention: Lark of Duluth 26 29
+Label: Airplane102691156 Aircraft102686568
+Gold: Airplane102691156 Aircraft102686568
+Pred: Aircraft102686568
+
+* Drottningholm Palace Theatre
+Mention: Drottningholm Palace Theatre 1 4
+Label: Structure104341686 Building102913152
+Gold: Structure104341686 Building102913152
+Pred: Structure104341686 House103544360 Building102913152
+
+* Swea
+Mention: Swea 1 2
+Label: Region108630985 Township108672199
+Gold: Region108630985 Township108672199
+Pred: Region108630985
+
+* Jackson
+Mention: Jackson 1 2
+Label: Region108630985 Township108672199
+Gold: Region108630985 Township108672199
+Pred: Region108630985
+
+Billy Clanton was armed with Colt Frontier 1873 revolvers which were identified by their serial numbers at the Spicer hearing .
+Mention: Colt Frontier 1873 5 8
+Label: Gun103467984 Firearm103343853
+Gold: Firearm103343853 Gun103467984
+Pred: Gun103467984
+
+This has to be set in comparison with the impact on heritage and or landscape protection areas ( compare Waldschlösschen Bridge ) .
+Mention: Waldschlösschen Bridge 19 21
+Label: Structure104341686 Bridge102898711
+Gold: Structure104341686 Bridge102898711
+Pred: Bridge102898711
+
+* 1969 – Oleg Serebrian , Moldovan political scientist and politician
+Mention: Oleg Serebrian 3 5
+Label: Ambassador109787534 Scientist110560637
+Gold: Scientist110560637 Ambassador109787534
+Pred: Scientist110560637
+
+* In 1999 the Coast Guard honored Haley by naming the cutter after him .
+Mention: cutter 11 12
+Label: Vessel104530566
+Gold: Vessel104530566
+Pred: Boat102858304 Vessel104530566
+
+Mahoney portrayed Martin Crane , the father of Grammer's and Pierce's characters in Frasier .
+Mention: Martin Crane 2 4
+Label: Policeman110448983 Serviceman110582746
+Gold: Policeman110448983 Serviceman110582746
+Pred: Policeman110448983
+
+Von Neumann's wartime Los Alamos ID badge photo .
+Mention: Los Alamos 3 5
+Label: Region108630985 GeographicalArea108574314 GeographicPoint108578706 Position108621598
+Gold: GeographicalArea108574314 Region108630985 GeographicPoint108578706 Position108621598
+Pred: GeographicPoint108578706 Position108621598
+
+* Old River
+Mention: Old River 1 3
+Label: Barrier102796623 Structure104341686
+Gold: Structure104341686 Barrier102796623
+Pred: GeographicalArea108574314
+
+Soon to be 33 years old , he was over the maximum age restriction for Aviation Cadet training — the normal path of commissioning for pilots , navigators and bombardiers — and therefore applied for an Air Corps commission as both a college graduate and a licensed commercial pilot .
+Mention: Aviation Cadet 15 17
+Label: Force108208016 MilitaryService108198137
+Gold: MilitaryService108198137 Force108208016
+Pred: Aircraft102686568
+
+Information gathered by the Pioneer 10 spacecraft helped Voyager's engineers design Voyager to cope more effectively with the intense radiation environment around Jupiter .
+Mention: Pioneer 10 4 6
+Label: Rocket104099429 Missile103773504
+Gold: Rocket104099429 Missile103773504
+Pred: Rocket104099429
+
+A MV - 22 landed on on 26 March 2015 , the first such landing on a Republic of Korea Navy amphibious ship .
+Mention: Republic of Korea Navy 17 21
+Label: Force108208016 MilitaryUnit108198398 MilitaryService108198137
+Gold: MilitaryService108198137 Force108208016 MilitaryUnit108198398
+Pred: MilitaryService108198137
+
+* Fido – Roger Grosjean
+Mention: Roger Grosjean 3 5
+Label: Spy110641755 Scientist110560637
+Gold: Scientist110560637 Spy110641755
+Pred: Scientist110560637
+
+* Hohenwalde
+Mention: Hohenwalde 1 2
+Label: GeographicalArea108574314 Village108672738 Region108630985
+Gold: GeographicalArea108574314 Region108630985 Village108672738
+Pred: Region108630985
+
+The United States started developing a long line of Landing Vehicle Tracked ( LVT ) designs from ca .
+Mention: Landing Vehicle Tracked 9 12
+Label: Vessel104530566 WheeledVehicle104576211 MilitaryVehicle103764276
+Gold: MilitaryVehicle103764276 Vessel104530566 WheeledVehicle104576211
+Pred: WheeledVehicle104576211
+
+Wolf - Heinrich Graf von Helldorff , with whom Ribbentrop had served in the 12th Torgau Hussars in the First World War , arranged the introduction .
+Mention: Wolf-Heinrich Graf von Helldorff 0 6
+Label: Policeman110448983 MilitaryOfficer110317007 Serviceman110582746
+Gold: MilitaryOfficer110317007 Policeman110448983 Serviceman110582746
+Pred: MilitaryOfficer110317007
+
+Before moving to the much larger Devaney Center , Nebraska played at the NU Coliseum , which provided an unparalleled home - court advantage .
+Mention: NU Coliseum 13 15
+Label: Structure104341686 Region108630985
+Gold: Structure104341686 Region108630985
+Pred: Structure104341686
+
+* Lisowczycy ( Polish )
+Mention: Lisowczycy 1 2
+Label: Mercenary110309614
+Gold: Mercenary110309614
+Pred: GeographicalArea108574314
+
+The Islanders' arrival effectively doomed the Raiders , who played in Madison Square Garden under difficult lease terms and were forced to move to Cherry Hill , New Jersey in the middle of their second season .
+Mention: Cherry Hill, New Jersey 24 29
+Label: Township108672199 GeographicalArea108574314 GeographicPoint108578706 UrbanArea108675967 Region108630985 City108524735
+Gold: UrbanArea108675967 GeographicalArea108574314 City108524735 Region108630985 Township108672199 GeographicPoint108578706
+Pred: Region108630985
+
+On August 8 , 2019 , the Empire State Development Corporation board ( ESD ) voted unanimously in favor of the Belmont Park Arena project .
+Mention: Empire State Development Corporation 7 11
+Label: Enterprise108056231 Corporation108059412
+Gold: Corporation108059412 Enterprise108056231
+Pred: Corporation108059412
+
+The bank also received criticism from the United Nations Environmental Program , stating in a report that " much of the growth has bypassed more than 70 percent of its rural population , many of whom are directly dependent on natural resources for livelihoods and incomes . "
+Mention: United Nations Environmental Program 7 11
+Label: Agency108337324 PoliticalUnit108359949 Alliance108293982 WorldOrganization108294696
+Gold: Alliance108293982 WorldOrganization108294696 PoliticalUnit108359949 Agency108337324
+Pred: PoliticalUnit108359949 Agency108337324
+
+In 1957 Nkrumah created a well - funded Ghana News Agency to generate domestic news and disseminate it abroad .
+Mention: Ghana News Agency 8 11
+Label: Enterprise108056231 NewsAgency108355075
+Gold: Enterprise108056231 NewsAgency108355075
+Pred: Agency108337324 Enterprise108056231 NewsAgency108355075
+
+The Ho Chi Minh City People's Committee is a 13 - member executive branch of the city .
+Mention: Ho Chi Minh City People's Committee 1 7
+Label: OfficeBuilding103842012 GovernmentBuilding103449564 Structure104341686 Building102913152
+Gold: Structure104341686 GovernmentBuilding103449564 OfficeBuilding103842012 Building102913152
+Pred: Region108630985
+
+Bolton High School in the Alexandria Garden District .
+Mention: Alexandria Garden District 5 8
+Label: Structure104341686 House103544360 Building102913152
+Gold: Structure104341686 House103544360 Building102913152
+Pred: Region108630985
+
+* Flyak
+Mention: Flyak 1 2
+Label: Boat102858304 Vessel104530566
+Gold: Boat102858304 Vessel104530566
+Pred: Region108630985
+
+The yellow Deuce and the white T - bird went unsold , despite being priced as low as $ 3 , 000 .
+Mention: T-bird 6 9
+Label: Car102958343 WheeledVehicle104576211
+Gold: WheeledVehicle104576211 Car102958343
+Pred: WheeledVehicle104576211
+
+The Council of Europe has barred Belarus from membership since 1997 for undemocratic voting and election irregularities in the November 1996 constitutional referendum and parliament by - elections .
+Mention: Council of Europe 1 4
+Label: Council108310949 Alliance108293982 WorldOrganization108294696
+Gold: Alliance108293982 Council108310949 WorldOrganization108294696
+Pred: Alliance108293982
+
+* Minsk - 1
+Mention: Minsk-1 1 4
+Label: Airport102692232
+Gold: Airport102692232
+Pred: Region108630039
+
+* 1948 – British rule in Burma ends .
+Mention: British rule in Burma 3 7
+Label: Country108544813 State108654360 Region108630985
+Gold: Country108544813 Region108630985 State108654360
+Pred: Country108544813
+
+A 2006 law - enforcement task force probe into Biggie Smalls' murder , which included then - LAPD Detective Greg Kading , included the murder of Shakur .
+Mention: Greg Kading 19 21
+Label: Policeman110448983 MilitaryOfficer110317007 Serviceman110582746
+Gold: MilitaryOfficer110317007 Policeman110448983 Serviceman110582746
+Pred: Policeman110448983 Serviceman110582746
+
+* Hugo Schneider AG
+Mention: Hugo Schneider AG 1 4
+Label: Enterprise108056231 Manufacturer108060446
+Gold: Manufacturer108060446 Enterprise108056231
+Pred: Enterprise108056231
+
+* : Various Sri Lanka leaders paid rich tribute to the three - time PM , hailing him as a " friend of Sri Lanka " .
+Mention: Sri Lanka 3 5
+Label: Land109334396 Country108544813 Region108630985
+Gold: Country108544813 Region108630985 Land109334396
+Pred: Country108544813 Land109334396
+
+The new French ambassador Charles - François Delacroix took the side of the radicals .
+Mention: Charles-François Delacroix 4 8
+Label: Minister110320863 Ambassador109787534
+Gold: Ambassador109787534 Minister110320863
+Pred: Ambassador109787534
+
+Alexander Hamilton founded the Post in 1801 .
+Mention: Alexander Hamilton 0 2
+Label: Policeman110448983 MilitaryOfficer110317007 Serviceman110582746 Scientist110560637
+Gold: Scientist110560637 MilitaryOfficer110317007 Policeman110448983 Serviceman110582746
+Pred: Scientist110560637
+
+* 1961 – Berlin Crisis .
+Mention: Berlin Crisis 3 5
+Label: Checkpoint108517825 GeographicalArea108574314 Region108630039 Region108630985
+Gold: GeographicalArea108574314 Region108630985 Checkpoint108517825 Region108630039
+Pred: Position108621598
+
+* Beechcraft Bonanza series - Single - engined piston general aviation aircraft
+Mention: Beechcraft Bonanza series 1 4
+Label: Aircraft102686568
+Gold: Aircraft102686568
+Pred: Airplane102691156 Aircraft102686568
+
+* * Tokushichi Mishima , Japanese engineer ( b .
+Mention: Tokushichi Mishima 2 4
+Label: Scientist110560637
+Gold: Scientist110560637
+Pred: MilitaryVehicle103764276
+
+The Chicago Area Council operates Owasippe Scout Reservation in Michigan .
+Mention: Owasippe Scout Reservation 5 8
+Label: GeographicalArea108574314 Structure104341686 Region108630985
+Gold: Structure104341686 GeographicalArea108574314 Region108630985
+Pred: Region108630985
+
+* 2001 – 2006 : Lowell Lock Monsters
+Mention: Lowell Lock Monsters 5 8
+Label: Club108227214 Association108049401 Team108208560
+Gold: Club108227214 Association108049401 Team108208560
+Pred: Club108227214
+
+Wuqiu Township comprises Greater Qiu Islet and Lesser Qiu Islet .
+Mention: Wuqiu Township 0 2
+Label: Land109334396 Region108630985 Township108672199
+Gold: Region108630985 Township108672199 Land109334396
+Pred: Township108672199
+
+The Marshall Islands also lays claim to Wake Island .
+Mention: Wake Island 7 9
+Label: GeographicalArea108574314 Region108630985 Land109334396 Position108621598
+Gold: GeographicalArea108574314 Region108630985 Position108621598 Land109334396
+Pred: Position108621598 Land109334396
+
+Perhaps the most famous and successful apostle was Carl Peter Thunberg , who embarked on a nine - year expedition in 1770 .
+Mention: Carl Peter Thunberg 8 11
+Label: MedicalPractitioner110305802 Scientist110560637
+Gold: Scientist110560637 MedicalPractitioner110305802
+Pred: MedicalPractitioner110305802
+
+# Punt dal Gall Dam
+Mention: Punt dal Gall Dam 1 5
+Label: Barrier102796623 Structure104341686
+Gold: Structure104341686 Barrier102796623
+Pred: Barrier102796623
+
+* San Jose Museum of Art , contemporary art museum with a collection of West Coast artists
+Mention: San Jose Museum of Art 1 6
+Label: Structure104341686 Tower104460130 Position108621598
+Gold: Structure104341686 Position108621598 Tower104460130
+Pred: Structure104341686 Position108621598
+
+* 28 Liberty Street , New York City , 1961
+Mention: 28 Liberty Street 1 4
+Label: OfficeBuilding103842012 Structure104341686 Building102913152
+Gold: Structure104341686 OfficeBuilding103842012 Building102913152
+Pred: OfficeBuilding103842012
+
+Prieto and his adviser , Portales , feared the efforts of Bolivian general Andrés de Santa Cruz to unite with Peru against Chile .
+Mention: Andrés de Santa Cruz 13 17
+Label: MilitaryOfficer110317007 Serviceman110582746 Ambassador109787534
+Gold: Ambassador109787534 MilitaryOfficer110317007 Serviceman110582746
+Pred: Ambassador109787534
+
+The IWW was active in Canada from a very early point in the organization's history , especially in Western Canada , primarily in British Columbia .
+Mention: British Columbia 23 25
+Label: State108654360 Region108630985
+Gold: Region108630985 State108654360
+Pred: State108654360
+
+* Canadian Pacific Building ( London )
+Mention: Canadian Pacific Building (London) 1 7
+Label: OfficeBuilding103842012 Structure104341686 ApartmentBuilding102726681 Building102913152
+Gold: Structure104341686 OfficeBuilding103842012 Building102913152 ApartmentBuilding102726681
+Pred: Building102913152
+
+The project was Western Europe's second attempt to develop its own launcher following the unsuccessful Europa project .
+Mention: Europa 15 16
+Label: Rocket104099429
+Gold: Rocket104099429
+Pred: MilitaryVehicle103764276
+
+The notion of world history as a succession of " civilizations " is an entirely modern one .
+Mention: world history 3 5
+Label: GeographicalArea108574314 Field108569998 Region108630985
+Gold: GeographicalArea108574314 Region108630985 Field108569998
+Pred: GeographicalArea108574314 Field108569998
+
+Klöntalersee .
+Mention: Klöntalersee 0 1
+Label: Barrier102796623 Structure104341686
+Gold: Structure104341686 Barrier102796623
+Pred: Region108630985
+
+From the natives they received a few gold trinkets and news of the riches of the Aztec Empire to the west .
+Mention: Aztec Empire 16 18
+Label: Country108544813 Region108630985
+Gold: Country108544813 Region108630985
+Pred: Country108544813
+
+* T - 44 Pegasus – Beechcraft KingAir
+Mention: T-44 Pegasus 1 5
+Label: Airplane102691156 Aircraft102686568
+Gold: Airplane102691156 Aircraft102686568
+Pred: Aircraft102686568
+
+* AEG G . IV - bomber
+Mention: AEG G.IV 1 5
+Label: Aircraft102686568
+Gold: Aircraft102686568
+Pred: Airplane102691156 Aircraft102686568
+
+The Great Wall of China is the world's longest wall .
+Mention: Great Wall of China 1 5
+Label: GeographicalArea108574314 Barrier102796623 Structure104341686 Region108630985
+Gold: Structure104341686 GeographicalArea108574314 Barrier102796623 Region108630985
+Pred: Structure104341686 Barrier102796623
+
+* Fargo ( 1920 – 1972 ) , Canada Folded into the Dodge Division .
+Mention: Fargo 1 2
+Label: Truck104490091 Car102958343 WheeledVehicle104576211
+Gold: Truck104490091 WheeledVehicle104576211 Car102958343
+Pred: WheeledVehicle104576211
+
+* Bergpark Wilhelmshöhe in Kassel
+Mention: Bergpark Wilhelmshöhe 1 3
+Label: GeographicalArea108574314 GeographicPoint108578706 Region108630985 Position108621598 Address108491027
+Gold: GeographicalArea108574314 Region108630985 Address108491027 GeographicPoint108578706 Position108621598
+Pred: Address108491027 GeographicPoint108578706 Position108621598
+
+Many consider the County of Foix to be the actual historical centre of Catharism .
+Mention: County of Foix 3 6
+Label: Country108544813 State108654360 Region108630985
+Gold: Country108544813 Region108630985 State108654360
+Pred: Region108630039
+
+Before the skyscrapers were built it was the Old Parliament Building that stood majestically in the Fort district with the Old Colombo Lighthouse close to it .
+Mention: Old Colombo Lighthouse 20 23
+Label: Structure104341686 Tower104460130 Position108621598
+Gold: Structure104341686 Position108621598 Tower104460130
+Pred: Structure104341686 Tower104460130
+
+* Dresden
+Mention: Dresden 1 2
+Label: GeographicalArea108574314 Village108672738 Region108630985
+Gold: GeographicalArea108574314 Region108630985 Village108672738
+Pred: UrbanArea108675967 GeographicalArea108574314 Town108665504 City108524735
+
+* Starved Rock State Park ( CCC Section in the visitors' center ) Oglesby , IL
+Mention: Starved Rock State Park (CCC Section in the visitors' center) Oglesby, IL 1 16
+Label: GeographicalArea108574314 Structure104341686 Region108630985 MilitaryInstallation103763133 Position108621598
+Gold: Structure104341686 GeographicalArea108574314 Region108630985 Position108621598 MilitaryInstallation103763133
+Pred: GeographicalArea108574314
+
+* East Keating
+Mention: East Keating 1 3
+Label: GeographicalArea108574314 Region108630985 Township108672199
+Gold: GeographicalArea108574314 Region108630985 Township108672199
+Pred: Region108630985
+
+* Joint Gulf Railway proposed to link gulf states at cost of $ 14b by 2014 .
+Mention: Gulf Railway 2 4
+Label: Railway104048568 Enterprise108056231
+Gold: Railway104048568 Enterprise108056231
+Pred: Railway104048568
+
+* * Chambersburg
+Mention: Chambersburg 2 3
+Label: UrbanArea108675967 GeographicalArea108574314 Region108630985 Township108672199
+Gold: UrbanArea108675967 GeographicalArea108574314 Region108630985 Township108672199
+Pred: UrbanArea108675967 GeographicalArea108574314 City108524735 Region108630985
+
+Serial - built aircraft had additional armour for the pilot , radiator and engine , and were armed with a Rolls - Royce gun with 12 rounds , later changed to the 40 mm ( 1 . 57 in ) Vickers S gun with 15 rounds .
+Mention: Vickers S gun 40 43
+Label: Gun103467984 Cannon102950256 Artillery102746365
+Gold: Cannon102950256 Gun103467984 Artillery102746365
+Pred: Firearm103343853 Gun103467984
+
+In 1873 the US Army established Fort Cameron two miles from Beaver because of Indian raids on the area Mormon settlements .
+Mention: Fort Cameron 6 8
+Label: GovernmentBuilding103449564 Structure104341686 Building102913152
+Gold: Structure104341686 GovernmentBuilding103449564 Building102913152
+Pred: Structure104341686 GeographicalArea108574314 MilitaryInstallation103763133
+
+All of the Chrétien leadership team that was created in 1990 were later to play prominent roles in the omnipotent Prime Minister's Office during Chrétien's time as prime minister .
+Mention: Prime Minister's Office 20 23
+Label: Minister110320863
+Gold: Minister110320863
+Pred: Structure104341686
+
+* 2677th Office of Strategic Services Regiment
+Mention: 2677th Office of Strategic Services Regiment 1 7
+Label: MilitaryUnit108198398
+Gold: MilitaryUnit108198398
+Pred: Intelligence108339454
+
+Their reasons were twofold : firstly , Garfield and Blaine believed that increasing trade with Latin America would be the best way to keep Great Britain from dominating the region .
+Mention: Latin America 15 17
+Label: Land109334396 Continent109254614 GeographicalArea108574314 Region108630039 Region108630985
+Gold: GeographicalArea108574314 Region108630985 Continent109254614 Land109334396 Region108630039
+Pred: Continent109254614 Land109334396 Region108630039
+
+Furthermore , around 55 , 000 serve as volunteers in the Danish Home Guard .
+Mention: Danish Home Guard 11 14
+Label: MilitaryUnit108198398 Militia108390511
+Gold: Militia108390511 MilitaryUnit108198398
+Pred: Force108208016 Militia108390511 MilitaryUnit108198398
+
+The most famous landmark in Worcester is the Anglican Worcester Cathedral .
+Mention: Worcester Cathedral 9 11
+Label: Structure104341686 House103544360 Building102913152
+Gold: Structure104341686 House103544360 Building102913152
+Pred: Structure104341686 Building102913152
+
+* Interpol , International Criminal Police Organization ,
+Mention: International Criminal Police Organization 3 7
+Label: Agency108337324 Alliance108293982 LawEnforcementAgency108348815 WorldOrganization108294696
+Gold: LawEnforcementAgency108348815 Alliance108293982 WorldOrganization108294696 Agency108337324
+Pred: LawEnforcementAgency108348815 Alliance108293982 WorldOrganization108294696 PoliticalUnit108359949 Agency108337324
+
+According to Rudolf Rahn , it was von Arnim ( who had led the Axis forces in North Africa since 8 December ) who assigned Jewish labour companies to individual units .
+Mention: Rudolf Rahn 2 4
+Label: Ambassador109787534
+Gold: Ambassador109787534
+Pred: Ambassador109787534 MilitaryOfficer110317007 Serviceman110582746
+
+* Scania
+Mention: Scania 1 2
+Label: Bus102924116 Manufacturer108060446 Enterprise108056231
+Gold: Manufacturer108060446 Enterprise108056231 Bus102924116
+Pred: Bus102924116
+
+* H . P . 52 Hampden – medium bomber
+Mention: H.P.52 Hampden 1 7
+Label: Airplane102691156 Warplane104552348 Aircraft102686568 MilitaryVehicle103764276
+Gold: Airplane102691156 MilitaryVehicle103764276 Warplane104552348 Aircraft102686568
+Pred: Aircraft102686568
+
+* First Canadian Place – a similar building from the same architect
+Mention: First Canadian Place 1 4
+Label: OfficeBuilding103842012 Structure104341686 Building102913152
+Gold: Structure104341686 OfficeBuilding103842012 Building102913152
+Pred: OfficeBuilding103842012 Building102913152
+
+* Drapacz Chmur , one of the first skyscrapers in Europe
+Mention: Drapacz Chmur 1 3
+Label: Structure104341686 Building102913152
+Gold: Structure104341686 Building102913152
+Pred: Structure104341686
+
+* Isaac Milo Kittleson , Mayor of Madison , Wisconsin from 1920 to 1925 .
+Mention: Isaac Milo Kittleson 1 4
+Label: Politician110451263 Mayor110303814
+Gold: Mayor110303814 Politician110451263
+Pred: Mayor110303814
+
+The Erdős number was most likely first defined in print by Casper Goffman , an analyst whose own Erdős number is 2 .
+Mention: analyst 15 16
+Label: GeographicalArea108574314 Structure104341686 Field108569998 Region108630985
+Gold: Structure104341686 GeographicalArea108574314 Region108630985 Field108569998
+Pred: Field108569998
+
+After her first albums , she had a successful run of variety shows on the Las Vegas Strip .
+Mention: Las Vegas Strip 15 18
+Label: Region108630985 Street104334599 Way104564698 Position108621598
+Gold: Way104564698 Region108630985 Position108621598 Street104334599
+Pred: Way104564698 Position108621598 Street104334599
+
+* International Development Association of the World Bank
+Mention: International Development Association 1 4
+Label: Agency108337324 Alliance108293982 WorldOrganization108294696
+Gold: Alliance108293982 WorldOrganization108294696 Agency108337324
+Pred: Alliance108293982 WorldOrganization108294696 Association108049401
+
+Scott soon finds himself at the Hellfire Club which had been turned into a sleazy strip club and tries to get drunk , attempting to escape the responsibilities , expectations , and demands which he feels are unjustly placed on him by the X - Men .
+Mention: Hellfire Club 6 8
+Label: Club108227214 Association108049401 Team108208560
+Gold: Club108227214 Association108049401 Team108208560
+Pred: Club108227214 Association108049401
+
+* Xantho
+Mention: Xantho 1 2
+Label: Animal100015388
+Gold: Animal100015388
+Pred: Region108630985
+
+* Volcanic Legacy Scenic Byway
+Mention: Volcanic Legacy Scenic Byway 1 5
+Label: Highway103519981 Way104564698 Region108630985
+Gold: Way104564698 Region108630985 Highway103519981
+Pred: Way104564698
+
+* Ross Township , Cherokee County , Kansas
+Mention: Ross Township, Cherokee County, Kansas 1 8
+Label: Region108630985 Township108672199
+Gold: Region108630985 Township108672199
+Pred: Township108672199
+
+Localized weakness , known as Todd's paralysis , may also occur after a focal seizure .
+Mention: Todd's paralysis 5 7
+Label: Symptom114299637
+Gold: Symptom114299637
+Pred: Disease114070360 IllHealth114052046
+
+* Claude Louis Hector de Villars
+Mention: Claude Louis Hector de Villars 1 6
+Label: Minister110320863 Governor110140314 MilitaryOfficer110317007 Politician110451263 Serviceman110582746 Ambassador109787534
+Gold: Governor110140314 Ambassador109787534 MilitaryOfficer110317007 Politician110451263 Serviceman110582746 Minister110320863
+Pred: Serviceman110582746
+
+Around the time he was appointed music director of the New York Philharmonic , and living opposite Carnegie Hall at The Osborne , Bernstein composed the music for two shows .
+Mention: The Osborne 20 22
+Label: Structure104341686 ApartmentBuilding102726681 Building102913152
+Gold: Structure104341686 Building102913152 ApartmentBuilding102726681
+Pred: Building102913152
+
+He was requested by the Taliban to serve as their ambassador but he refused , telling friends that he felt Pakistan's Inter - Services Intelligence ( ISI ) was wrongly using them .
+Mention: Inter-Services Intelligence 21 25
+Label: Intelligence108339454 Agency108337324 MilitaryUnit108198398
+Gold: Intelligence108339454 Agency108337324 MilitaryUnit108198398
+Pred: Intelligence108339454 MilitaryUnit108198398
+
+In late 1993 , Bezos decided to establish an online bookstore .
+Mention: online bookstore 9 11
+Label: Shop104202417 Structure104341686 Highway103519981 Way104564698
+Gold: Structure104341686 Way104564698 Shop104202417 Highway103519981
+Pred: Structure104341686 Shop104202417
+
+Ronald O'Rourke of the Congressional Research Service wrote that the PLAN " continues to exhibit limitations or weaknesses in several areas , including capabilities for sustained operations by larger formations in distant waters , joint operations with other parts of China’s military , C4ISR systems , anti - air warfare ( AAW ) , antisubmarine warfare ( ASW ) , MCM , and a dependence on foreign suppliers for certain key ship components . "
+Mention: Congressional Research Service 4 7
+Label: Intelligence108339454 Agency108337324
+Gold: Intelligence108339454 Agency108337324
+Pred: Intelligence108339454
+
+The Los Angeles County Fire Department ( LACFD ) serves Marina del Rey and is based at Station # 110 , a part of Battalion 1 , at 4433 Admiralty Way .
+Mention: Los Angeles County Fire Department 1 6
+Label: Agency108337324 FireDepartment108121117
+Gold: Agency108337324 FireDepartment108121117
+Pred: Agency108337324
+
+* * Shitagō , great - grandson of Sadamu
+Mention: Shitagō 2 3
+Label: Scientist110560637
+Gold: Scientist110560637
+Pred: Region108630985
+
+In 1992 , Ball became preoccupied with the media circus that accompanied the Amy Fisher trial .
+Mention: Amy Fisher 13 15
+Label: Journalist110224578
+Gold: Journalist110224578
+Pred: Politician110451263
+
+* PX 200
+Mention: PX 200 1 3
+Label: WheeledVehicle104576211
+Gold: WheeledVehicle104576211
+Pred: MilitaryVehicle103764276 WheeledVehicle104576211
+
+* Loftus Hall
+Mention: Loftus Hall 1 3
+Label: Structure104341686 House103544360 Building102913152
+Gold: Structure104341686 House103544360 Building102913152
+Pred: Structure104341686
+
+* Mission Viejo ( 93 , 305 )
+Mention: Mission Viejo 1 3
+Label: UrbanArea108675967 GeographicalArea108574314 Region108630985 City108524735
+Gold: UrbanArea108675967 GeographicalArea108574314 City108524735 Region108630985
+Pred: GeographicalArea108574314
+
+* Fao , Iraq
+Mention: Fao, Iraq 1 4
+Label: UrbanArea108675967 GeographicalArea108574314 Region108630985 City108524735
+Gold: UrbanArea108675967 GeographicalArea108574314 City108524735 Region108630985
+Pred: GeographicalArea108574314 Region108630985
+
+* Jin Yuelin ( 1895 – 1984 )
+Mention: Jin Yuelin 1 3
+Label: Scientist110560637
+Gold: Scientist110560637
+Pred: Mayor110303814
+
+It was known by the common name " poinsettia " as early as 1836 , derived from Joel Roberts Poinsett , a botanist and the first US Minister to Mexico .
+Mention: Joel Roberts Poinsett 17 20
+Label: MedicalPractitioner110305802 Ambassador109787534 Scientist110560637
+Gold: Scientist110560637 Ambassador109787534 MedicalPractitioner110305802
+Pred: Scientist110560637 MedicalPractitioner110305802
+
+He also closed the Pearl River Channel , trapping British traders in Canton .
+Mention: Pearl River Channel 4 7
+Label: GeographicalArea108574314 Structure104341686 Bridge102898711 Region108630985
+Gold: Structure104341686 GeographicalArea108574314 Region108630985 Bridge102898711
+Pred: Bridge102898711
+
+Coventry motor companies have contributed significantly to the British motor industry .
+Mention: British motor industry 8 11
+Label: Enterprise108056231 Manufacturer108060446
+Gold: Manufacturer108060446 Enterprise108056231
+Pred: Enterprise108056231
+
+Elisha Collier of Boston , Massachusetts patented a flintlock revolver in Britain in 1818 , and significant numbers were being produced in London by 1822 .
+Mention: Elisha Collier 0 2
+Label: Gun103467984 Firearm103343853
+Gold: Firearm103343853 Gun103467984
+Pred: Politician110451263
+
+* Royal Arsenal ( UK )
+Mention: Royal Arsenal 1 3
+Label: GovernmentBuilding103449564 Structure104341686 Building102913152
+Gold: Structure104341686 GovernmentBuilding103449564 Building102913152
+Pred: Structure104341686
+
+Possible locations include PA 63 near Willow Grove , Upper Merion Township , and around Norristown and Plymouth Meeting .
+Mention: PA 63 3 5
+Label: Street104334599 Highway103519981 Way104564698
+Gold: Way104564698 Highway103519981 Street104334599
+Pred: Highway103519981
+
+Spock and Uhura amicably end their relationship , and have some tension over Spock's intention to leave Starfleet to help the Vulcan survivors , in the wake of the death of Spock Prime .
+Mention: Starfleet 17 18
+Label: Force108208016 Polity108050385 Government108050678 MilitaryService108198137
+Gold: Government108050678 MilitaryService108198137 Force108208016 Polity108050385
+Pred: Government108050678 MilitaryService108198137 Force108208016 Polity108050385 MilitaryUnit108198398
+
+In 1960 , the city adopted the slogan " The Dream City " , including matching license places .
+Mention: license places 16 18
+Label: Car102958343 WheeledVehicle104576211
+Gold: WheeledVehicle104576211 Car102958343
+Pred: WheeledVehicle104576211
+
+The festival begins with a memorial service at Oak Lawn Cemetery in Lake City to honor those who died from both sides on day one and ends with a reenactment at the Olustee Battlefield Historic State Park on day three .
+Mention: Olustee Battlefield Historic State Park 32 37
+Label: GeographicalArea108574314 Region108630985
+Gold: GeographicalArea108574314 Region108630985
+Pred: Region108630985 Position108621598
+
+It was later demolished and replaced in 1995 with the Merrill P . Barber Bridge .
+Mention: Merrill P. Barber Bridge 10 15
+Label: Structure104341686 Bridge102898711
+Gold: Structure104341686 Bridge102898711
+Pred: Bridge102898711
+
+* Cap - des - Rosiers , the tallest lighthouse in Canada : 34 . 1 M
+Mention: Cap-des-Rosiers 1 6
+Label: GeographicalArea108574314 Tower104460130 Structure104341686 Region108630985
+Gold: Structure104341686 GeographicalArea108574314 Region108630985 Tower104460130
+Pred: Structure104341686
+
+* John O'Connell Bridge
+Mention: John O'Connell Bridge 1 4
+Label: Structure104341686 Bridge102898711
+Gold: Structure104341686 Bridge102898711
+Pred: Bridge102898711
+
+A county - owned and maintained bridge , its official designation is the Big Chiques # 4 Bridge .
+Mention: Big Chiques #4 Bridge 13 18
+Label: Structure104341686 Bridge102898711
+Gold: Structure104341686 Bridge102898711
+Pred: Bridge102898711
+
+* Nordson
+Mention: Nordson 1 2
+Label: Enterprise108056231 Manufacturer108060446
+Gold: Manufacturer108060446 Enterprise108056231
+Pred: Region108630985
+
+Roman rule was bound together by law , language , and the Roman road .
+Mention: Roman road 12 14
+Label: Structure104341686 Way104564698
+Gold: Structure104341686 Way104564698
+Pred: Way104564698
+
+In 1903 , the Army converted its M1900 guns in . 30 Army to fit the new . 30 - 03 cartridge ( standardized for the M1903 Springfield rifle ) as the M1903 .
+Mention: .30-03 17 21
+Label: Ammunition102703275
+Gold: Ammunition102703275
+Pred: Ammunition102703275 Gun103467984
+
+The experience of four years of air attacks on London by Zeppelins and Gotha G . V bombers had particularly influenced the British and was one of if not the main driver for forming an independent air force .
+Mention: Gotha G.V 13 17
+Label: Aircraft102686568
+Gold: Aircraft102686568
+Pred: Airplane102691156 Aircraft102686568
+
+Excavations at Wilson Butte Cave near Twin Falls in 1959 revealed evidence of human activity , including arrowheads , that rank among the oldest dated artifacts in North America .
+Mention: North America 27 29
+Label: Land109334396 Continent109254614 Region108630039
+Gold: Continent109254614 Land109334396 Region108630039
+Pred: Continent109254614 Land109334396
+
+* Sycamore Township – west
+Mention: Sycamore Township 1 3
+Label: GeographicalArea108574314 Region108630985 Township108672199
+Gold: GeographicalArea108574314 Region108630985 Township108672199
+Pred: Region108630985 Township108672199
+
+Local historian E . C . Alft has written several books and an ongoing newspaper column about Elgin's history .
+Mention: E. C. Alft 2 7
+Label: Politician110451263 Journalist110224578 Mayor110303814
+Gold: Mayor110303814 Politician110451263 Journalist110224578
+Pred: Journalist110224578
+
+Other archaeologists have built modern earthworks and measured the effects of silting in the ditches and weathering and subsidence on the banks to understand better how ancient monuments would have looked .
+Mention: earthworks 5 6
+Label: Structure104341686 Building102913152
+Gold: Structure104341686 Building102913152
+Pred: GeographicalArea108574314
+
+The Germans " bitterly resented the loss of the panels " , and at the start of another conflict in 1940 , a decision was made in Belgium to send the painting to the Vatican to keep it safe .
+Mention: Vatican 34 35
+Label: Country108544813 GeographicalArea108574314 UrbanArea108675967 Region108630985 City108524735
+Gold: Country108544813 UrbanArea108675967 GeographicalArea108574314 City108524735 Region108630985
+Pred: Country108544813 UrbanArea108675967 City108524735
+
+* William Holden , Academy Award - winning actor
+Mention: William Holden 1 3
+Label: MilitaryOfficer110317007 Serviceman110582746 Spy110641755
+Gold: Spy110641755 MilitaryOfficer110317007 Serviceman110582746
+Pred: Serviceman110582746
+
+; Interstate 90
+Mention: Interstate 90 1 3
+Label: Highway103519981 Structure104341686 Way104564698 Bridge102898711
+Gold: Structure104341686 Way104564698 Highway103519981 Bridge102898711
+Pred: Way104564698 Highway103519981
+
+In June 1896 he met here and began a lifelong friendship with Frederick Russell Burnham , the American - born Chief of Scouts for the British Army in Africa .
+Mention: Frederick Russell Burnham 12 15
+Label: Sniper110616899 MilitaryOfficer110317007 Mercenary110309614 Serviceman110582746
+Gold: Mercenary110309614 MilitaryOfficer110317007 Sniper110616899 Serviceman110582746
+Pred: Mercenary110309614 Serviceman110582746
+
+At the front of the launcher was a small trough in which the bomb was placed , and the movable spigot ran along the axis of the launcher and into the trough .
+Mention: spigot 20 21
+Label: Cannon102950256 Artillery102746365
+Gold: Cannon102950256 Artillery102746365
+Pred: Cannon102950256
+
+* KhT - 130 flame - throwing tank in the Kubinka Tank Museum , Moscow Oblast ( Russia ) : in reality this is the TU - 26 teletank control vehicle with a dummy flame - thrower .
+Mention: teletank 28 29
+Label: WheeledVehicle104576211 Tank104389033 MilitaryVehicle103764276
+Gold: Tank104389033 MilitaryVehicle103764276 WheeledVehicle104576211
+Pred: WheeledVehicle104576211
+
+* 74 BVS10 armored all - terrain personnel carriers
+Mention: BVS10 2 3
+Label: MilitaryVehicle103764276 WheeledVehicle104576211
+Gold: MilitaryVehicle103764276 WheeledVehicle104576211
+Pred: WheeledVehicle104576211
+
+* Nicholas Humphrey
+Mention: Nicholas Humphrey 1 3
+Label: Scientist110560637
+Gold: Scientist110560637
+Pred: Politician110451263
+
+Derby , to avoid confusion with El Paso , Texas .
+Mention: El Paso, Texas 6 10
+Label: GeographicalArea108574314 UrbanArea108675967 Town108665504 Region108630985 City108524735 Railway104048568 Enterprise108056231
+Gold: UrbanArea108675967 GeographicalArea108574314 Town108665504 City108524735 Region108630985 Railway104048568 Enterprise108056231
+Pred: UrbanArea108675967 GeographicalArea108574314 Town108665504 City108524735 Railway104048568 Enterprise108056231
+
+The low - end SG - 100 and the P - 90 equipped SG - 200 appeared during this time , as well as the luxurious SG Pro and SG Deluxe guitars .
+Mention: P-90 9 12
+Label: Truck104490091 WheeledVehicle104576211
+Gold: Truck104490091 WheeledVehicle104576211
+Pred: WheeledVehicle104576211
+
+As Eliyahu Lankin tells in his book :
+Mention: Eliyahu Lankin 1 3
+Label: Ambassador109787534
+Gold: Ambassador109787534
+Pred: MilitaryOfficer110317007 Serviceman110582746
+
+* Part of a small barge or fishing vessel from 1223 to 1290 found at Canning Town
+Mention: Canning Town 15 17
+Label: Street104334599 GeographicalArea108574314 Way104564698 Region108630985
+Gold: GeographicalArea108574314 Way104564698 Region108630985 Street104334599
+Pred: GeographicalArea108574314
+
+* Sergio Berlinguer ( born 6 May 1934 )
+Mention: Sergio Berlinguer 1 3
+Label: Minister110320863 MilitaryOfficer110317007 Serviceman110582746 Ambassador109787534
+Gold: Ambassador109787534 MilitaryOfficer110317007 Serviceman110582746 Minister110320863
+Pred: MilitaryOfficer110317007 Serviceman110582746
+
+* * * US Air Force Air Demonstration Squadron ( Thunderbirds ) – F - 16C / D Fighting Falcon
+Mention: US Air Force Air Demonstration Squadron (Thunderbirds) 3 12
+Label: MilitaryUnit108198398 Team108208560
+Gold: Team108208560 MilitaryUnit108198398
+Pred: MilitaryUnit108198398
+
+He persuaded the Colonial Office in London to send more than 10 , 000 Imperial troops to New Zealand and General Sir Duncan Cameron was appointed to lead the campaign .
+Mention: Duncan Cameron 22 24
+Label: Governor110140314 MilitaryOfficer110317007 Politician110451263 Serviceman110582746
+Gold: Governor110140314 MilitaryOfficer110317007 Politician110451263 Serviceman110582746
+Pred: Serviceman110582746
+
+* Republic of Ireland ( ISO 3166 - 1 alpha - 3 country code )
+Mention: Republic of Ireland 1 4
+Label: Country108544813 Region108630039 Region108630985
+Gold: Country108544813 Region108630985 Region108630039
+Pred: Country108544813 Region108630985 Land109334396 Region108630039
+
+The method chosen by American and Continental relied on supporting the engine / pylon assembly with a large forklift .
+Mention: forklift 18 19
+Label: Truck104490091 WheeledVehicle104576211
+Gold: Truck104490091 WheeledVehicle104576211
+Pred: Truck104490091 WheeledVehicle104576211 Car102958343
+
+The Anglo - French forces pillage China's Summer Palace , October 1860 .
+Mention: Summer Palace 7 9
+Label: GeographicalArea108574314 GeographicPoint108578706 Region108630985 Address108491027
+Gold: GeographicalArea108574314 Region108630985 Address108491027 GeographicPoint108578706
+Pred: GeographicalArea108574314 Address108491027 GeographicPoint108578706
+
+Aerospace systems also serves as the contractor for numerous space payloads and is the prime contractor for the James Webb Space Telescope
+Mention: James Webb Space Telescope 18 22
+Label: Missile103773504 Rocket104099429
+Gold: Rocket104099429 Missile103773504
+Pred: Rocket104099429
+
+However , much of the traditional contemporary music of Mexico was written during and after the Spanish colonial period , using many old world influenced instruments .
+Mention: old world 22 24
+Label: Land109334396 Continent109254614
+Gold: Continent109254614 Land109334396
+Pred: Country108544813
+
+* Eyebrow , an ostrich in Tide - Line Blue
+Mention: Tide-Line Blue 6 10
+Label: Warship104552696 Vessel104530566 MilitaryVehicle103764276
+Gold: Warship104552696 MilitaryVehicle103764276 Vessel104530566
+Pred: Vessel104530566
+
+* Charles Hartung 1885 - 1887
+Mention: Charles Hartung 1 3
+Label: MilitaryOfficer110317007 Politician110451263 Serviceman110582746 Mayor110303814
+Gold: Mayor110303814 MilitaryOfficer110317007 Politician110451263 Serviceman110582746
+Pred: Serviceman110582746
+
+Contrary to his predecessor General Sir Edmund Ironside , who favoured a static coastal defence , Brooke focused on developing a mobile reserve which was to swiftly counterattack the enemy forces before they were established .
+Mention: Sir Edmund Ironside 5 8
+Label: Governor110140314 MilitaryOfficer110317007 Politician110451263 Serviceman110582746 Spy110641755
+Gold: Governor110140314 Spy110641755 MilitaryOfficer110317007 Politician110451263 Serviceman110582746
+Pred: Governor110140314 Serviceman110582746
+
+* 180 mm projectile ZBV1 for S - 23 , MK - 3 - 180 ( originally a coast artillery piece ) , maximum range 45 km .
+Mention: S-23 6 9
+Label: Cannon102950256 Artillery102746365
+Gold: Cannon102950256 Artillery102746365
+Pred: Artillery102746365
+
+* 129 Afdva ( equipped with MGM - 52 Lance missiles )
+Mention: MGM-52 Lance 6 10
+Label: Rocket104099429 Missile103773504
+Gold: Rocket104099429 Missile103773504
+Pred: Rocket104099429 Missile103773504 Bomb102866578 Aircraft102686568
+
+Canada geese grazing across the Ottawa river from Parliament Hill ( 2019 ) .
+Mention: Parliament Hill 8 10
+Label: GeographicalArea108574314 Region108630985
+Gold: GeographicalArea108574314 Region108630985
+Pred: Region108630985
+
+The fort was established about 48 AD by the Roman army as a base camp for its conquest of the Birmingham area and part of a network of forts across the Midlands linked by roads .
+Mention: Roman army 9 11
+Label: Force108208016 MilitaryUnit108198398 MilitaryService108198137
+Gold: MilitaryService108198137 Force108208016 MilitaryUnit108198398
+Pred: Force108208016
+
+* hemiballismus
+Mention: hemiballismus 1 2
+Label: IllHealth114052046 Disease114070360
+Gold: Disease114070360 IllHealth114052046
+Pred: Disease114070360
+
+* Denny Altes ( born 1948 ) , former member of both houses of the Arkansas State Legislature ; Vietnam War veteran from Fort Smith
+Mention: Denny Altes 1 3
+Label: Policeman110448983 Politician110451263
+Gold: Politician110451263 Policeman110448983
+Pred: Politician110451263
+
+* Passage des Panoramas
+Mention: Passage des Panoramas 1 4
+Label: Street104334599 Structure104341686 Way104564698
+Gold: Structure104341686 Way104564698 Street104334599
+Pred: Way104564698 Street104334599
+
+Ben Gurion International Airport .
+Mention: Ben Gurion International Airport 0 4
+Label: Structure104341686 Airport102692232
+Gold: Structure104341686 Airport102692232
+Pred: Airport102692232
+
+* Bay Area Rapid Transit , a rapid transit public transportation system serving the San Francisco Bay Area in California .
+Mention: Bay Area Rapid Transit 1 5
+Label: Railway104048568 Enterprise108056231
+Gold: Railway104048568 Enterprise108056231
+Pred: Railway104048568
+
+This was authorized on March 13 , 1824 , by Governor Don Miguel de la Torre .
+Mention: Miguel de la Torre 12 16
+Label: Governor110140314 MilitaryOfficer110317007 Politician110451263 Serviceman110582746
+Gold: Governor110140314 MilitaryOfficer110317007 Politician110451263 Serviceman110582746
+Pred: Ambassador109787534
+
+Gheorghiu - Dej resigned as the party's general secretary in 1954 but retained the premiership ; a four - member collective secretariat , including Nicolae Ceaușescu , controlled the party for a year before Gheorghiu - Dej again took up the reins .
+Mention: Nicolae Ceaușescu 24 26
+Label: Ruler110541229 MilitaryOfficer110317007 Serviceman110582746
+Gold: Ruler110541229 MilitaryOfficer110317007 Serviceman110582746
+Pred: Ruler110541229 MilitaryOfficer110317007 Serviceman110582746 Minister110320863
+
+Princeton University Press issued a commemorative printing of the second edition in 2004 on the occasion of the joint centennial of Campbell's birth and the Press's founding with an added foreword by Clarissa Pinkola Estés .
+Mention: Clarissa Pinkola Estés 32 35
+Label: MedicalPractitioner110305802 Scientist110560637
+Gold: Scientist110560637 MedicalPractitioner110305802
+Pred: Scientist110560637
+
+Further decisions were made to let the emperor rule over his little court in the New Summer Palace .
+Mention: New Summer Palace 15 18
+Label: GeographicalArea108574314 GeographicPoint108578706 Region108630985 Address108491027
+Gold: GeographicalArea108574314 Region108630985 Address108491027 GeographicPoint108578706
+Pred: Address108491027 GeographicPoint108578706
+
+The city is located within Crystal Falls Township , but is a separate municipal entity .
+Mention: Crystal Falls Township 5 8
+Label: Region108630985 Township108672199
+Gold: Region108630985 Township108672199
+Pred: UrbanArea108675967 GeographicalArea108574314 Region108630985 Township108672199
+
+Lucio Costa also had overall responsibility for the plan of the most audacious modernist project in Brazil ; the creation of a new capital , Brasilia , constructed between 1956 and 1961 .
+Mention: Brasilia 25 26
+Label: GeographicalArea108574314 UrbanArea108675967 Region108630985 City108524735 Region108630039
+Gold: UrbanArea108675967 GeographicalArea108574314 City108524735 Region108630985 Region108630039
+Pred: UrbanArea108675967 GeographicalArea108574314 City108524735 Region108630039
+
+F - 101 of the 62d Fighter - Interceptor Squadron on Alert during the 1960s .
+Mention: F-101 0 3
+Label: Airplane102691156 Aircraft102686568
+Gold: Airplane102691156 Aircraft102686568
+Pred: Aircraft102686568
+
+File : Andrew Jackson Young . jpg | Andrew Young served 1977 – 1979 , born March 13 , 1932 ( age )
+Mention: Andrew Young 8 10
+Label: Minister110320863 Politician110451263 Ambassador109787534 Mayor110303814
+Gold: Ambassador109787534 Mayor110303814 Politician110451263 Minister110320863
+Pred: Politician110451263
+
+* Henry Williamson ( author ) , born and raised in Lewisham
+Mention: Henry Williamson 1 3
+Label: MilitaryOfficer110317007 Serviceman110582746
+Gold: MilitaryOfficer110317007 Serviceman110582746
+Pred: Policeman110448983
+
+* Glendorado Township ( east )
+Mention: Glendorado Township 1 3
+Label: Region108630985 Township108672199
+Gold: Region108630985 Township108672199
+Pred: Township108672199
+
+* Faxon Township , Sibley County ( west )
+Mention: Faxon Township, Sibley County 1 6
+Label: Region108630985 Township108672199
+Gold: Region108630985 Township108672199
+Pred: Township108672199
+
+John H . Eaton ( DR )
+Mention: John H. Eaton 0 4
+Label: Governor110140314 Politician110451263 Ambassador109787534
+Gold: Governor110140314 Ambassador109787534 Politician110451263
+Pred: Ambassador109787534
+
+Cotteril Clough is an area of woodland that is among the most diverse in Greater Manchester .
+Mention: Cotteril Clough 0 2
+Label: GeographicalArea108574314 Village108672738 Region108630985
+Gold: GeographicalArea108574314 Region108630985 Village108672738
+Pred: GeographicalArea108574314
+
+All this came to an end , however , when most of these theatres were demolished during the rebuilding of Paris by Baron Haussmann in 1862 .
+Mention: rebuilding of Paris by Baron Haussmann 18 24
+Label: Street104334599 GeographicalArea108574314 Way104564698 Region108630985
+Gold: GeographicalArea108574314 Way104564698 Region108630985 Street104334599
+Pred: Way104564698
+
+The Utica shale is especially conducive to shale gas exploitation .
+Mention: shale gas 7 9
+Label: Rock109416076
+Gold: Rock109416076
+Pred: Rock109416076 Rock114696793
+
+The International Committee on Radiation Protection ( ICRP ) guidance states that if a personal dosimeter is worn on a position on the body representative of its exposure , assuming whole - body exposure , the value of personal dose equivalent Hp ( 10 ) is sufficient to estimate an effective dose value suitable for radiological protection .
+Mention: International Committee on Radiation Protection 1 6
+Label: Alliance108293982 WorldOrganization108294696
+Gold: Alliance108293982 WorldOrganization108294696
+Pred: Alliance108293982
+
+He first settled in Beaver Dam , Wisconsin , where he worked on a farm and in a shingle mill .
+Mention: Beaver Dam, Wisconsin 4 8
+Label: UrbanArea108675967 GeographicalArea108574314 Region108630985 City108524735
+Gold: UrbanArea108675967 GeographicalArea108574314 City108524735 Region108630985
+Pred: Structure104341686
+
+* Midway Township ( southeast )
+Mention: Midway Township 1 3
+Label: GeographicalArea108574314 Region108630985 Township108672199
+Gold: GeographicalArea108574314 Region108630985 Township108672199
+Pred: Region108630985 Township108672199
+
