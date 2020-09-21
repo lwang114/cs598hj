@@ -27,6 +27,20 @@ def load_word_embed(path: str,
     """
     vocab = {'$$$UNK$$$': 0}
     embed_matrix = [[0.0] * dimension]
+    ''' TODO
+    if ':' in path:
+        for subpath in path.split(':'):
+            with open(subpath) as r:
+                if skip_first:
+                    r.readline()
+            for line in r:
+                segments = line.rstrip('\n').rstrip(' ').split(sep)
+                word = segments[0]
+                if not word in vocab_in_data:
+                    continue
+                print('\rEmbedding {} for {}'.format(len(vocab), word), end='')
+    else:
+    '''
     with open(path) as r:
         if skip_first:
             r.readline()
@@ -80,7 +94,7 @@ def load_label_embed(label_vocabs: Dict[str, int],
             print('Words for label {}: {} {}'.format(i_label, label_word[:i_char], label_word[i_char:]))
             v1 = torch.LongTensor([word_vocabs.get(w1)])
             v2 = torch.LongTensor([word_vocabs.get(w2)])
-            label_embed_matrix.append(torch.mean(torch.cat([word_embed(v1), word_embed(v2)]), keepdim=True))
+            label_embed_matrix.append(torch.mean(torch.cat([word_embed(v1), word_embed(v2)]), dim=0, keepdim=True))
             found = True
             break
 
@@ -185,6 +199,35 @@ def calculate_macro_fscore(golds: List[List[int]],
 
     return precision * 100.0, recall * 100.0, fscore * 100.0
 
+def calculate_micro_fscore(golds: List[List[int]],
+                           preds: List[List[int]]) -> Tuple[float, float, float]:
+    """Calculate Micro F-score"""
+    overlap = 0
+    total_gold_num = total_pred_num = 0
+    precision = recall = 0
+    for gold, pred in zip(golds, preds):
+        total_gold_num += sum(gold)
+        total_pred_num += sum(pred)
+        overlap += sum([i and j for i, j in zip(gold, pred)])
+    precision = overlap / total_pred_num if total_pred_num else 0
+    recall = overlap / total_gold_num if total_gold_num else 0
+    fscore = 0 if precision + recall == 0 else \
+             2.0 * (precision * recall) / (precision + recall)
+    return precision * 100.0, recall * 100.0, fscore * 100.0
+
+def calculate_accuracy(golds: List[List[int]],
+                       preds: List[List[int]]) -> float:
+    """Calculate Accuracy"""
+    correct = 0
+    total_num = len(golds)
+    for gold, pred in zip(golds, preds):
+        correct += (gold == pred)
+
+    accuracy = correct / total_num
+    return accuracy
+
+# TODO Save 200 error examples randomly chosen from the dataset
+
 def multi_max_margin_rank_loss(scores: torch.Tensor,
                          labels: torch.Tensor,
                          margin: float = 1.) -> torch.Tensor:
@@ -202,7 +245,24 @@ def multi_max_margin_rank_loss(scores: torch.Tensor,
     score_diffs = (scores.unsqueeze(1) - scores.unsqueeze(2))
     thres = torch.FloatTensor(np.zeros((B, 1, 1))).to(scores.device)
     score_diffs_thresholded = torch.max(score_diffs + margin, thres)
-    print(score_diffs.size())
     loss = loss + torch.sum(torch.sum(score_diffs_thresholded * labels.unsqueeze(2), axis=-1) * (1 - labels).unsqueeze(1))
-    print(loss)
-    return loss
+    return loss / B
+
+if __name__ == '__main__':
+    import os
+    exp_root = 'exp/'
+    i_epoch = 14
+    for exp_dir in os.listdir(exp_root):
+        print(exp_dir)
+        exp_dir = '{}/{}'.format(exp_root, exp_dir)
+        pred_fn = '{}/test_results_{}.json'.format(exp_dir, i_epoch)
+        if not os.path.isfile(pred_fn):
+            continue
+        with open(pred_fn, 'r') as f:
+            pred_dict = json.load(f)
+            golds = pred_dict['gold']
+            preds = pred_dict['pred']
+            prec, rec, f1 = calculate_micro_fscore(golds, preds)
+            acc = calculate_accuracy(golds, preds)
+            print('Micro precision {:2f}, recall {:2f}, F1 score {:2f}'.format(prec, rec, f1))
+            print('Accuracy {:2f}\n'.format(acc))
