@@ -227,6 +227,37 @@ def calculate_accuracy(golds: List[List[int]],
     return accuracy
 
 # TODO Save 200 error examples randomly chosen from the dataset
+def print_error_examples(in_fn, pred_fn, out_fn, label_vocab_fn, n_mentions=200):
+  with open(pred_fn, 'r') as pred_f,\
+       open(label_vocab_fn, 'r') as vocab_f:
+    pred_dict = json.load(pred_f)
+    label_vocab_dict = json.load(vocab_f)
+    label_vocabs = sorted(label_vocab_dict, key=lambda x:label_vocab_dict[x])
+
+    preds = pred_dict['pred']
+    golds = pred_dict['gold']
+
+  with open(in_fn, 'r') as in_f,\
+       open(out_fn, 'w') as out_f:
+    i_mention = 0
+    for line in in_f:
+      sent_dict = json.loads(line)
+      sent = sent_dict['tokens']
+      for mention_dict in sent_dict['annotations']:
+        mention_id = mention_dict['mention_id']
+        mention = mention_dict['mention']
+        start, end = mention_dict['start'], mention_dict['end']
+        pred = preds[i_mention]
+        gold = golds[i_mention]
+        gold_label = [label_vocabs[k] for k, i in enumerate(gold) if i]
+        pred_label = [label_vocabs[k] for k, i in enumerate(pred) if i]
+        i_mention += 1
+
+        if (gold == pred).all():
+          continue
+        out_f.write('{}\nMention: {} {} {}\nGold: {}\nPred: {}\n'.format(' '.join(sent),\
+                      mention, start, end, gold_label, pred_label))
+        
 
 def multi_max_margin_rank_loss(scores: torch.Tensor,
                          labels: torch.Tensor,
