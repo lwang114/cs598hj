@@ -2,33 +2,31 @@ import torch
 import torch.nn as nn
 import torch.nn.utils.rnn as R
 from typing import Tuple
-from util import multi_max_margin_rank_loss
 
-class JointEmbedLstmFet(nn.Module):
+
+class AttentionLstmFet(nn.Module):
     def __init__(self,
                  word_embed: nn.Embedding,
                  lstm: nn.LSTM,
-                 hidden_linear: nn.Linear,
+                 attend_layer: nn.Linear,
                  output_linear: nn.Linear,
-                 label_embed_matrix: torch.Tensor,
                  word_embed_dropout: float = 0,
                  lstm_dropout: float = 0):
         super().__init__()
         
         self.word_embed = word_embed
-        self.label_embed_matrix = label_embed_matrix
         self.lstm = lstm
-        self.hidden_linear = hidden_linear
+        self.attend_layer = attend_layer
         self.output_linear = output_linear
         self.word_embed_dropout = nn.Dropout(word_embed_dropout)
         self.lstm_dropout = nn.Dropout(lstm_dropout)
         self.criterion = nn.MultiLabelSoftMarginLoss()
-        
+    
     def forward_nn(self,
                    inputs: torch.Tensor,
                    mention_mask: torch.Tensor,
                    context_mask: torch.Tensor,
-                   seq_lens: torch.Tensor) -> torch.Tensor:
+                   seq_lens: torch.Tensor) -> torch.Tensor: # XXX
         """
         Args:
             inputs (torch.Tensor): Word index tensor for the input batch.
@@ -62,17 +60,21 @@ class JointEmbedLstmFet(nn.Module):
         # Average mention embedding
         mention_mask = ((1 - mention_mask) * -1e14).softmax(-1).unsqueeze(-1)
         mention_repr = (lstm_out * mention_mask).sum(1)
+
+        # Context attention
+        mention_repr_repeat = mention_repr.unsqueeze(1).repeat(1, lstm_out.size(1), 1)
+        context_attention = self.attend_layer(torch.cat([mention_repr_repeat, lstm_out], dim=-1))
+        context_attention = context_attention + (1 - context_mask).unsqueeze(-1) * -1e14
         
-        # Average context embedding
-        context_mask = ((1 - context_mask) * -1e14).softmax(-1).unsqueeze(-1)
+        # Attended context embedding
+        context_mask = context_attention.softmax(-1)
         context_repr = (lstm_out * context_mask).sum(1)
         
         # Concatenate mention and context representations
         combine_repr = torch.cat([mention_repr, context_repr], dim=1)
-        latent_concept_repr = 0.1*self.hidden_linear(combine_repr)
         
         # Linear classifier
-        scores = self.output_linear(combine_repr) + torch.matmul(latent_concept_repr, self.label_embed_matrix.T)
+        scores = self.output_linear(combine_repr)
         
         return scores
     
@@ -106,8 +108,7 @@ class JointEmbedLstmFet(nn.Module):
               the batch size and M is the number of labels.
         """
         scores = self.forward_nn(inputs, mention_mask, context_mask, seq_lens)
-        loss = self.criterion(scores, labels) + 1e-4 * multi_max_margin_rank_loss(scores, labels)
-        
+        loss = self.criterion(scores, labels)
         return loss, scores
     
     def predict(self,

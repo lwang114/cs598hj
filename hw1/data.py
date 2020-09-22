@@ -11,12 +11,14 @@ def chunk_list(lst: list, chunk_size: int):
 
 class FetDataset(object):
     def __init__(self,
-                 path: str):
+                 path: str,
+                 device: str='cuda:0'):
         """
         Args:
             path (str): Path to the data file.
         """
         self.path = path
+        self.device = device
     
     def batches(self,
                 vocabs: Dict[str, Dict[str, int]],
@@ -57,7 +59,7 @@ class FetDataset(object):
                         random.shuffle(buffer)
                     # Generate batches
                     for batch in chunk_list(buffer, batch_size):
-                        yield self.process_batch(batch, vocabs, gpu)
+                        yield self.process_batch(batch, vocabs, gpu, device=self.device)
                     # Empty the buffer
                     buffer = []
         
@@ -66,12 +68,13 @@ class FetDataset(object):
             if shuffle:
                 random.shuffle(buffer)
             for batch in chunk_list(buffer, batch_size):
-                yield self.process_batch(batch, vocabs, gpu)
+                yield self.process_batch(batch, vocabs, gpu, device=self.device)
        
     @staticmethod         
     def process_batch(batch: list,
                       vocabs: Dict[str, Dict[str, int]],
-                      gpu: bool = True
+                      gpu: bool = True,
+                      device: str = 'cuda:0'
                       ) -> (torch.Tensor, torch.Tensor, torch.Tensor,
                             torch.Tensor, List[str], List[str],
                             torch.Tensor):
@@ -153,11 +156,11 @@ class FetDataset(object):
         batch_seq_lens = torch.LongTensor(batch_seq_lens)
         if gpu:
             # Move to GPU
-            batch_token_idxs = batch_token_idxs.cuda()
-            batch_labels = batch_labels.cuda()
-            batch_mention_mask = batch_mention_mask.cuda()
-            batch_context_mask = batch_context_mask.cuda()
-            batch_seq_lens = batch_seq_lens.cuda()
+            batch_token_idxs = batch_token_idxs.to(device=device)
+            batch_labels = batch_labels.to(device=device)
+            batch_mention_mask = batch_mention_mask.to(device=device)
+            batch_context_mask = batch_context_mask.to(device=device)
+            batch_seq_lens = batch_seq_lens.to(device=device)
         
         return (batch_token_idxs, batch_labels,
                 batch_mention_mask, batch_context_mask,

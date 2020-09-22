@@ -4,6 +4,7 @@ import torch.nn as nn
 import logging
 from typing import List, Dict, Tuple
 import numpy as np
+from copy import deepcopy
 
 def load_word_embed(path: str,
                     dimension: int,
@@ -26,39 +27,51 @@ def load_word_embed(path: str,
         values are word indices.
     """
     vocab = {'$$$UNK$$$': 0}
-    embed_matrix = [[0.0] * dimension]
-    ''' TODO
-    if ':' in path:
-        for subpath in path.split(':'):
+    
+    if ':' in path: # Combine embeddings
+        n_paths = len(path.split(':'))
+        embed_matrix = [[[0.0] * dimension for _ in range(n_paths)]]
+        for i_path, subpath in enumerate(path.split(':')):
             with open(subpath) as r:
                 if skip_first:
                     r.readline()
+                for line in r:
+                    # if len(vocab) > 100: # XXX
+                    #     break 
+                    segments = line.rstrip('\n').rstrip(' ').split(sep)
+                    word = segments[0]
+                    if not word in vocab_in_data:
+                        continue
+                    embed = [float(x) for x in segments[1:]]
+                    if not word in vocab:
+                        vocab[word] = len(vocab)    
+                        embed_matrix.append([embed for _ in range(n_paths)])
+                    else:
+                        embed_matrix[vocab[word]][i_path] = deepcopy(embed)
+                    print('\rFound embedding {} for {} from path {}'.format(len(vocab), word, subpath), end='')
+        embed_matrix = torch.FloatTensor(embed_matrix)
+        embed_matrix = embed_matrix.reshape(embed_matrix.size(0), -1)
+        print('embed_matrix.size(): {}'.format(embed_matrix.size()))
+    else:
+        embed_matrix = [[0.0] * dimension]
+        with open(path) as r:
+            if skip_first:
+                r.readline()
             for line in r:
                 segments = line.rstrip('\n').rstrip(' ').split(sep)
                 word = segments[0]
                 if not word in vocab_in_data:
-                    continue
-                print('\rEmbedding {} for {}'.format(len(vocab), word), end='')
-    else:
-    '''
-    with open(path) as r:
-        if skip_first:
-            r.readline()
-        for line in r:
-            segments = line.rstrip('\n').rstrip(' ').split(sep)
-            word = segments[0]
-            if not word in vocab_in_data:
-              continue 
+                    continue 
 
-            # if len(vocab) > 100: # XXX
-            #   break 
-            print('\rEmbedding {} for {}'.format(len(vocab), word), end='')
-            vocab[word] = len(vocab)
-            embed = [float(x) for x in segments[1:]]
-            embed_matrix.append(embed)
-    print('\rLoaded %d word embeddings' % (len(embed_matrix) - 1))
+                # if len(vocab) > 100: # XXX
+                #   break 
+                print('\rEmbedding {} for {}'.format(len(vocab), word), end='')
+                vocab[word] = len(vocab)
+                embed = [float(x) for x in segments[1:]]
+                embed_matrix.append(embed)
+                print('\rLoaded %d word embeddings' % (len(embed_matrix) - 1))
             
-    embed_matrix = torch.FloatTensor(embed_matrix)
+        embed_matrix = torch.FloatTensor(embed_matrix)
     
     word_embed = nn.Embedding.from_pretrained(embed_matrix,
                                               freeze=freeze,
@@ -226,39 +239,50 @@ def calculate_accuracy(golds: List[List[int]],
     accuracy = correct / total_num
     return accuracy
 
-# TODO Save 200 error examples randomly chosen from the dataset
-def print_error_examples(in_fn, pred_fn, out_fn, label_vocab_fn, n_mentions=200):
+def print_error_examples(in_fn, pred_fn, out_fn, label_vocab_fn, max_n_mentions=200):
+  """Save 200 error examples randomly chosen from the dataset"""
   with open(pred_fn, 'r') as pred_f,\
        open(label_vocab_fn, 'r') as vocab_f:
     pred_dict = json.load(pred_f)
-    label_vocab_dict = json.load(vocab_f)
+    label_vocab_dict = json.load(vocab_f)['label']
     label_vocabs = sorted(label_vocab_dict, key=lambda x:label_vocab_dict[x])
 
     preds = pred_dict['pred']
     golds = pred_dict['gold']
-
+    mention_ids = pred_dict['id']
+    
   with open(in_fn, 'r') as in_f,\
        open(out_fn, 'w') as out_f:
-    i_mention = 0
+    i_err = 0
     for line in in_f:
       sent_dict = json.loads(line)
       sent = sent_dict['tokens']
       for mention_dict in sent_dict['annotations']:
-        mention_id = mention_dict['mention_id']
+        cur_mention_id = mention_dict['mention_id']
+        for i_mention, mention_id in enumerate(mention_ids):
+            if mention_id == cur_mention_id:
+                break
         mention = mention_dict['mention']
         start, end = mention_dict['start'], mention_dict['end']
+        labels = mention_dict['labels']
         pred = preds[i_mention]
         gold = golds[i_mention]
         gold_label = [label_vocabs[k] for k, i in enumerate(gold) if i]
         pred_label = [label_vocabs[k] for k, i in enumerate(pred) if i]
-        i_mention += 1
-
-        if (gold == pred).all():
-          continue
-        out_f.write('{}\nMention: {} {} {}\nGold: {}\nPred: {}\n'.format(' '.join(sent),\
-                      mention, start, end, gold_label, pred_label))
+        # if i_err < 10:
+        #     print(sent, mention_dict['mention'], mention_dict['labels'], gold_label)
         
-
+        if gold == pred:
+            continue
+        i_err += 1
+        out_f.write('{}\nMention: {} {} {}\nLabel: {}\nGold: {}\nPred: {}\n\n'.format(' '.join(sent),\
+                                                                                      mention, start, end, ' '.join(labels), ' '.join(gold_label), ' '.join(pred_label)))
+        if i_err >= max_n_mentions:
+            break
+      if i_err >= max_n_mentions:
+        break
+  print('Number of mentions {}, number of errors {}'.format(len(preds), i_err))
+    
 def multi_max_margin_rank_loss(scores: torch.Tensor,
                          labels: torch.Tensor,
                          margin: float = 1.) -> torch.Tensor:
@@ -281,7 +305,9 @@ def multi_max_margin_rank_loss(scores: torch.Tensor,
 
 if __name__ == '__main__':
     import os
+    data_root = '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/'
     exp_root = 'exp/'
+    in_fn = '{}/en.test.ds.json'.format(data_root)
     i_epoch = 14
     for exp_dir in os.listdir(exp_root):
         print(exp_dir)
@@ -289,6 +315,8 @@ if __name__ == '__main__':
         pred_fn = '{}/test_results_{}.json'.format(exp_dir, i_epoch)
         if not os.path.isfile(pred_fn):
             continue
+        label_vocab_fn = '{}/vocabs.json'.format(exp_dir)
+        print_error_examples(in_fn, pred_fn, '{}/error_examples.txt'.format(exp_dir), label_vocab_fn)
         with open(pred_fn, 'r') as f:
             pred_dict = json.load(f)
             golds = pred_dict['gold']
