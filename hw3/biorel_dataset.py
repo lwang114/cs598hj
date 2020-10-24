@@ -14,17 +14,19 @@ class BioRelDataset(Dataset):
     word2idx_file = config.get('word2idx_file', 'word2idx.json')
     ner2idx_file = config.get('ner2idx_file', 'ner2idx.json') 
     char2idx_file = config.get('char2idx_file', 'char2idx.json')
+    self.split = config.get('split', 'train')
     self.max_nchars_word = config.get('max_nchars_per_word', 16)
     self.max_nchars_sent = config.get('max_nchars_per_sent', 512)
     self.max_nwords = config.get('max_nwords', 100)
-
+    self.data_dir = config.get('data_dir', '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw3/')
+    
     self.word2idx = {UNK:0}
     self.ner2idx = {NULL:0}
     self.char2idx = {NULL:0} 
-    self.load_data(json_file,
-              word2idx_file,
-              ner2idx_file,
-              char2idx_file)
+    self.load_data(os.path.join(self.data_dir, json_file),
+              os.path.join(self.data_dir, word2idx_file),
+              os.path.join(self.data_dir, ner2idx_file),
+              os.path.join(self.data_dir, char2idx_file))
 
   def load_data(self, json_file,
                 word2idx_file,
@@ -103,10 +105,11 @@ class BioRelDataset(Dataset):
     word_lens = []
     char_lens = []
     
-    cur_word_idxs = np.zeros(self.max_nwords)
-    cur_char_idxs = np.zeros((self.max_nwords, self.max_nchars_word))
-    cur_char_lens = np.zeros(self.max_nwords)
-    for data_dict in data_dicts:
+    cur_word_idxs = np.zeros(self.max_nwords, dtype=np.int)
+    cur_char_idxs = np.zeros((self.max_nwords, self.max_nchars_word), dtype=np.int)
+    cur_char_lens = np.zeros(self.max_nwords, dtype=np.int)
+    for ex, data_dict in enumerate(data_dicts):
+      print('{} instance {}'.format(self.split, ex))
       text = data_dict['text'].split()
       entities = data_dict['entities']
 
@@ -114,15 +117,16 @@ class BioRelDataset(Dataset):
       spans = np.zeros(len(text), dtype=np.int)
       start = 0
       for i_w, w in enumerate(text):
-        spans[i_w] = start
+        if i_w >= self.max_nwords or start >= self.max_nchars_sent:
+          break
+          
+        spans[i_w] = min(start, self.max_nchars_sent)
         start = spans[i_w] + len(w) + 1
         cur_char_lens[i_w] = min(len(w), self.max_nchars_word)
       
-        w = self.clean(w)  
+        w = self.clean(w[:cur_char_lens[i_w]])  
         cur_word_idxs[i_w] = self.word2idx.get(w, 0)
         for i_c, c in enumerate(w):
-          if i_c >= self.max_nchars_word:
-            continue
           cur_char_idxs[i_w, i_c] = self.char2idx.get(c, 0)
 
       # Load character-level entity labels
@@ -138,13 +142,13 @@ class BioRelDataset(Dataset):
               labels_char_level[start:end] = self.ner2idx.get(entity_label, 0)
 
       # Convert the character-level entity labels to word-level entity labels
-      cur_ner_idxs = np.zeros(self.max_nwords)
-      cur_pos_idxs = np.zeros(self.max_nwords) 
+      cur_ner_idxs = np.zeros(self.max_nwords, dtype=np.int)
+      cur_pos_idxs = np.zeros(self.max_nwords, dtype=np.int) 
       i_e = 1
       for i_w, word in enumerate(text):
           # Sentence lengths in words
           if i_w >= self.max_nwords:
-            continue 
+            break 
 
           # Entity ids
           entity_id = labels_char_level[spans[i_w]]
@@ -168,7 +172,13 @@ class BioRelDataset(Dataset):
     self.pos_idxs = np.asarray(pos_idxs)
     self.word_lens = np.asarray(word_lens)
     self.char_lens = np.asarray(char_lens)
-  
+    if not os.path.isdir(os.path.join(self.data_dir, 'prepro_data')):
+      os.mkdir(os.path.join(self.data_dir, 'prepro_data'))
+    np.save('{}/{}_word.npy'.format(self.data_dir, self.split), self.word_idxs)
+    np.save('{}/{}_char.npy'.format(self.data_dir, self.split), self.char_idxs)
+    np.save('{}/{}_pos.npy'.format(self.data_dir, self.split), self.pos_idxs)
+    np.save('{}/{}_ner.npy'.format(self.data_dir, self.split), self.ner_idxs)
+    
   # def get_batch(self): # TODO
   def __getitem__(self, idx):
     return torch.LongTensor(self.word_idxs),\
@@ -184,4 +194,6 @@ class BioRelDataset(Dataset):
     return word
 
 if __name__ == '__main__':
-  dset = BioRelDataset('1.0alpha7.train.json')
+  
+  train_set = BioRelDataset('1.0alpha7.train.json', {'split': 'train'})
+  dev_set = BioRelDataset('1.0alpha7.dev.json', {'split': 'dev'})
