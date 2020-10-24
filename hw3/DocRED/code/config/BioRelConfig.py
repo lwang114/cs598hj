@@ -264,14 +264,16 @@ class BioRelConfig(object):
                                                 
 					for h in hlist:
 						h[0] = inv_span[int(h[0])] # Convert h[0] and h[1] to be in terms of words instead of characters
-						h[1] = inv_span[int(h[1])]
+						h[1] = inv_span[int(h[1]-1)]
 						if h[1] == h[0]:
 							h[1] += 1
 						h_mapping[i, j, h[0]:h[1]] = 1.0 / len(hlist) / (h[1] - h[0])
 
 					for t in tlist:
 						t[0] = inv_span[int(t[0])]
-						t[1] = inv_span[int(t[1])]
+						t[1] = inv_span[int(t[1]-1)]
+						if t[1] == t[0]:
+							t[1] += 1
 						t_mapping[i, j, t[0]:t[1]] = 1.0 / len(tlist) / (t[1] - t[0])
 
 					label = idx2label[(h_idx, t_idx)]
@@ -298,17 +300,24 @@ class BioRelConfig(object):
 				# lower_bound = max(20, len(train_tripe)*3)          
         
 				for j, (h_idx, t_idx) in enumerate(na_triple, len(train_tripe)):
-					hlist_by_names = ins['entities'][h_idx].values()
-					tlist_by_names = ins['entities'][t_idx].values()
-
+					hlist_by_names = ins['entities'][h_idx]['names'].values()
+					tlist_by_names = ins['entities'][t_idx]['names'].values()
+					
+					hlist = [h_mention for h_info in hlist_by_names for h_mention in h_info['mentions'] if h_info['is_mentioned']]                 
+					tlist = [t_mention for t_info in tlist_by_names for t_mention in t_info['mentions'] if t_info['is_mentioned']]
+					
 					for h in hlist:
 						h[0] = inv_span[int(h[0])]
-						h[1] = inv_span[int(h[1])]
+						h[1] = inv_span[int(h[1]-1)]
+						if h[0] == h[1]:
+							h[1] += 1
 						h_mapping[i, j, h[0]:h[1]] = 1.0 / len(hlist) / (h[1] - h[0])
 
 					for t in tlist:
 						t[0] = inv_span[int(t[0])]
-						t[1] = inv_span[int(t[1])]
+						t[1] = inv_span[int(t[1]-1)]
+						if t[0] == t[1]:
+							t[1] += 1
 						t_mapping[i, j, t[0]:t[1]] = 1.0 / len(tlist) / (t[1] - t[0])
 
 					relation_multi_label[i, j, 0] = 1
