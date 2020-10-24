@@ -240,34 +240,34 @@ class BioRelConfig(object):
 				idx2label = defaultdict(list)
 
 				for label in labels:
-          h = label['participants'][0]
-          t = label['participants'][1]
-          idx2label[(h, t)].append(label['label'])
-					# idx2label[(label['h'], label['t'])].append(label['r'])
+ 					h = label['participants'][0]
+ 					t = label['participants'][1]
+ 					idx2label[(h, t)].append(label['label'])
+ 					# idx2label[(label['h'], label['t'])].append(label['r'])
 
-        # Create an ``inverse`` span
-        text = ins['text']
-        inv_span = np.nan*np.ones(len(text))
-        start = 0
-        for i_w, word in enumerate(text.split()):
-          inv_span[start:start+len(word)] = i_w
-          start += len(word) + 1
+				# Create an ``inverse`` span
+				text = ins['text']
+				inv_span = np.nan*np.ones(len(text))
+				start = 0
+				for i_w, word in enumerate(text.split()):
+					inv_span[start:start+len(word)] = i_w
+					start += len(word) + 1
 
 				train_tripe = list(idx2label.keys())
 				for j, (h_idx, t_idx) in enumerate(train_tripe):
-          hlist = ins['entities'][h_idx]
-          tlist = ins['entities'][t_idx]
-          # hlist = ins['vertexSet'][h_idx]
+					hlist = ins['entities'][h_idx]
+					tlist = ins['entities'][t_idx]
+					# hlist = ins['vertexSet'][h_idx]
 					# tlist = ins['vertexSet'][t_idx]
 
 					for h in hlist['mentions']:
-            h[0] = inv_span[h[0]] # Convert h[0] and h[1] to be in terms of words instead of characters
-            h[1] = inv_span[h[1]]
+						h[0] = inv_span[h[0]] # Convert h[0] and h[1] to be in terms of words instead of characters
+						h[1] = inv_span[h[1]]
 						h_mapping[i, j, h[0]:h[1]] = 1.0 / len(hlist) / (h[1] - h[0])
 
 					for t in tlist:
-            t[0] = inv_span[t[0]]
-            t[1] = inv_span[t[1]]
+						t[0] = inv_span[t[0]]
+						t[1] = inv_span[t[1]]
 						t_mapping[i, j, t[0]:t[1]] = 1.0 / len(tlist) / (t[1] - t[0])
 
 					label = idx2label[(h_idx, t_idx)]
@@ -290,9 +290,8 @@ class BioRelConfig(object):
 				# lower_bound = len(ins['na_triple'])
 				# random.shuffle(ins['na_triple'])
 				# lower_bound = max(20, len(train_tripe)*3)
-        L = len(ins['entities']) 
-        na_tuples = [(h_idx, t_idx) for h_idx in range(L) for t_idx in range(L)\
-                                                        if not (h_idx, t_idx) in train_tripe]
+				L = len(ins['entities']) 
+				na_tuples = [(h_idx, t_idx) for h_idx in range(L) for t_idx in range(L) if not (h_idx, t_idx) in train_tripe]
           
         
 				for j, (h_idx, t_idx) in enumerate(na_tuples, len(train_tripe)):
@@ -301,12 +300,12 @@ class BioRelConfig(object):
 
 					for h in hlist:
 						h[0] = inv_span[h[0]]
-            h[1] = inv_span[h[1]]
-            h_mapping[i, j, h[0]:h[1]] = 1.0 / len(hlist) / (h[1] - h[0])
+						h[1] = inv_span[h[1]]
+						h_mapping[i, j, h[0]:h[1]] = 1.0 / len(hlist) / (h[1] - h[0])
 
 					for t in tlist:
-            t[0] = inv_span[t[0]]
-            t[1] = inv_span[t[1]]
+						t[0] = inv_span[t[0]]
+						t[1] = inv_span[t[1]]
 						t_mapping[i, j, t[0]:t[1]] = 1.0 / len(tlist) / (t[1] - t[0])
 
 					relation_multi_label[i, j, 0] = 1
@@ -409,8 +408,8 @@ class BioRelConfig(object):
 				max_h_t_cnt = max(max_h_t_cnt, j)
 				label_set = {}
 				for label in ins['interactions']:
-          h = label['participants'][0]
-          t = label['participants'][1]
+					h = label['participants'][0]
+					t = label['participants'][1]
 					label_set[(h, t)] = label['label']
 
 				labels.append(label_set)
