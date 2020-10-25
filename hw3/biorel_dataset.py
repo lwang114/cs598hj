@@ -8,6 +8,7 @@ from nltk.tokenize import word_tokenize
 UNK = '<UNK>'
 NULL = '<NULL>'
 NA = '<N/A>'
+SPC = '#'
 PUNCT = [' ', ',', '.', '(', ')']
 class BioRelDataset(Dataset):
   def __init__(self, json_file,
@@ -73,12 +74,14 @@ class BioRelDataset(Dataset):
 
     if not os.path.isfile(word2idx_file) or not os.path.isfile(ner2idx_file) or not os.path.isfile(char2idx_file):
       for data_dict in data_dicts:
-        text = data_dict['text'].split()
-        entities = data_dict['entities']
+        text = word_tokenize(SPC.join(data_dict['text'].split()))
+				entities = data_dict['entities']
         relations = data_dict['interactions']
         
         for word in text:
-          word = self.clean(word)
+					if word == SPC:
+						continue
+
           if not word in self.word2idx:
             self.word2idx[word] = len(self.word2idx)
           
@@ -124,22 +127,21 @@ class BioRelDataset(Dataset):
     cur_char_lens = np.zeros(self.max_nwords, dtype=np.int)
     for ex, data_dict in enumerate(data_dicts):
       print('{} instance {}'.format(self.split, ex))
-      text = data_dict['text'].split()
+			text = word_tokenize(SPC.join(data_dict['text'].split()))
       entities = data_dict['entities']
 
       # Load word and character labels and the word spans
       spans = np.zeros(len(text), dtype=np.int)
-      start = 0
+			start = 0
       for i_w, w in enumerate(text):
         if i_w >= self.max_nwords or start >= self.max_nchars_sent:
           break
           
-        spans[i_w] = min(start, self.max_nchars_sent)
-        start = spans[i_w] + len(w) + 1
-        cur_char_lens[i_w] = min(len(w), self.max_nchars_word)
-      
-        w = self.clean(w[:cur_char_lens[i_w]])  
-        cur_word_idxs[i_w] = self.word2idx.get(w, 0)
+				w = w[:self.max_nchars_word]
+        spans[i_w] = start + len(w) 
+        start = spans[i_w]
+				cur_char_lens[i_w] = len(w)
+				cur_word_idxs[i_w] = self.word2idx.get(w, 0)
         for i_c, c in enumerate(w):
           cur_char_idxs[i_w, i_c] = self.char2idx.get(c, 0)
 
@@ -159,13 +161,13 @@ class BioRelDataset(Dataset):
       cur_ner_idxs = np.zeros(self.max_nwords, dtype=np.int)
       cur_pos_idxs = np.zeros(self.max_nwords, dtype=np.int) 
       i_e = 1
-      for i_w, word in enumerate(text):
+      for i_w, word in text:
           # Sentence lengths in words
           if i_w >= self.max_nwords:
             break 
 
           # Entity ids
-          entity_id = labels_char_level[spans[i_w]]
+          entity_id = labels_char_level[spans[i_w]-1]
           cur_ner_idxs[i_w] = entity_id
           
           # Position ids
@@ -190,8 +192,32 @@ class BioRelDataset(Dataset):
     np.save('{}/prepro_data/{}_char.npy'.format(self.data_dir, self.split), self.char_idxs)
     np.save('{}/prepro_data/{}_pos.npy'.format(self.data_dir, self.split), self.pos_idxs)
     np.save('{}/prepro_data/{}_ner.npy'.format(self.data_dir, self.split), self.ner_idxs)
-    
-  # def get_batch(self): # TODO
+  
+	def load_word_embed(path: str,
+											dimension: int,
+											*,
+											skip_first: bool = False:
+											freeze: bool = False,
+											sep: str = ' ', 
+											out_file = 'vec.npy'
+											): # TODO
+		embed_matrix = [[0.0] * dimension]
+		with open(path) as r:
+			if skip_first:
+					r.readline()
+			for line in r:
+					segments = line.rstrip('\n').rstrip(' ').split(sep)
+					word = segments[0]
+					if not word in self.word2idx:
+						continue
+					
+					print('\rEmbedding {} for {}'.format(word), end='')
+					embed = [float(x) for x in segments[1:]]
+					embed_matrix.append(embed)
+
+		np.save(out_file, np.asarray(embed_matrix))
+
+  # def get_batch(self):
   def __getitem__(self, idx):
     return torch.LongTensor(self.word_idxs),\
            torch.LongTensor(self.char_idxs),\
