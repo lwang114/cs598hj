@@ -142,5 +142,5 @@ class BioRelBertDataset(Dataset):
     return word
 
 if __name__ == '__main__':
-  train_set = BioRelDataset('1.0alpha7.train.json', {'split': 'train', 'data_dir': './'} # '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw3/bert/'})
-  dev_set = BioRelDataset('1.0alpha7.dev.json', {'split': 'dev', 'data_dir': './'} #'/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw3/bert/'})
+  train_set = BioRelDataset('1.0alpha7.train.json', {'split': 'train', 'data_dir': '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw3/bert/'})
+  dev_set = BioRelDataset('1.0alpha7.dev.json', {'split': 'dev', 'data_dir': '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw3/bert/'})
