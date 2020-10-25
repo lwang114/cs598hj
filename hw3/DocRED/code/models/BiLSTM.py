@@ -60,7 +60,6 @@ class BiLSTM(nn.Module):
 		# para_size, char_size, bsz = context_idxs.size(1), context_char_idxs.size(2), context_idxs.size(0)
 		# context_ch = self.char_emb(context_char_idxs.contiguous().view(-1, char_size)).view(bsz * para_size, char_size, -1)
 		# context_ch = self.char_cnn(context_ch.permute(0, 2, 1).contiguous()).max(dim=-1)[0].view(bsz, para_size, -1)
-
 		sent = self.word_emb(context_idxs)
 		if self.use_coreference:
 			sent = torch.cat([sent, self.entity_embed(pos)], dim=-1)

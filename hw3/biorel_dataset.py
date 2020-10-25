@@ -12,210 +12,150 @@ SPC = '#'
 PUNCT = [' ', ',', '.', '(', ')']
 class BioRelDataset(Dataset):
   def __init__(self, json_file,
-               config={}):
+   		     config={}):
     word2idx_file = config.get('word2idx_file', 'word2id.json')
     ner2idx_file = config.get('ner2idx_file', 'ner2id.json') 
     char2idx_file = config.get('char2idx_file', 'char2id.json')
     rel2idx_file = config.get('rel2idx_file', 'rel2id.json')
+    word_vec_file = config.get('word_vec_file', 'vec.npy')
     self.split = config.get('split', 'train')
     self.max_nchars_word = config.get('max_nchars_per_word', 16)
     self.max_nchars_sent = config.get('max_nchars_per_sent', 512)
     self.max_nwords = config.get('max_nwords', 100)
     self.data_dir = config.get('data_dir', '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw3/')
-    
+    self.embed_path = config.get('embed_path', '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/cc.en.300.vec')    
+
     self.word2idx = {UNK:0}
     self.ner2idx = {NULL:0}
     self.char2idx = {NULL:0} 
     self.rel2idx = {NA:0}
+    
     if not os.path.isdir(os.path.join(self.data_dir, 'prepro_data')):
       os.mkdir(os.path.join(self.data_dir, 'prepro_data'))
-    self.load_data(os.path.join(self.data_dir, 'prepro_data', json_file),
-                   os.path.join(self.data_dir, 'prepro_data', word2idx_file),
-                   os.path.join(self.data_dir, 'prepro_data', ner2idx_file),
-                   os.path.join(self.data_dir, 'prepro_data', char2idx_file),
-                   os.path.join(self.data_dir, 'prepro_data', rel2idx_file))
+    self.out_path = os.path.join(self.data_dir, 'prepro_data')
+    self.load_data(os.path.join(self.data_dir, json_file))
+    # if not os.path.isfile(os.path.join(self.data_dir, 'prepro_data', word_vec_file)):
+    # 	self.load_word_embed(self.embed_path, dimension=300, out_file=word_vec_file)		
 
-  def load_data(self, json_file,
-                word2idx_file,
-                ner2idx_file,
-                char2idx_file,
-                rel2idx_file):
+  def load_data(self, data_file_name,
+                char_limit = 16,
+                max_length = 512):
     """
       Args:
-        json_file: name of the json file containing the annotations of the sentences       
-          {
-            'text': (sent str),
-            'entities': [
-               {'names': 
-                (name_1): {
-                  'is_mentioned': (bool),
-                  'mentions': [[start_1, end_1], ..., [start_M, end_M]]
-                  },
-                (name 2): {...},
-                ...,
-                (name N): {...}]},
-               {(another entity)}
-             ]  
-            }
+	data_file_name: name of the data file in json format containing the annotations of the sentences	   
+	  {
+	    'text': (sent str),
+	    'entities': [
+	       {'names': 
+		(name_1): {
+		  'is_mentioned': (bool),
+		  'mentions': [[start_1, end_1], ..., [start_M, end_M]]
+		  },
+		(name 2): {...},
+		...,
+		(name N): {...}]},
+	       {(another entity)}
+	     ]	
+	    }
       Returns:
-        char_idxs: N x L x Kc Long Tensor
-               [[[char2idx[c] for c in word_i^n] for i in range(L)] for n in range(N)]
-        ner_idxs: N x L Long Tensor
-              [[entity_i^n for i in range(L)] for n in range(N)]
-        word_idxs: N x L Long Tensor
-               [[word_i^n for i in range(L)] for n in range(N)]
-        pos_idxs: N x L Long Tensor
-             [[entity_order_i^n for i in range(L)] for n in range(N)]
-        word_lens: N-dim Long Tensor storing the length of each word in characters
-        sent_lens: N x L Long Tensor storing the length of each sent in words
+	char_idxs: N x L x Kc Long Tensor
+	       [[[char2idx[c] for c in word_i^n] for i in range(L)] for n in range(N)]
+	ner_idxs: N x L Long Tensor
+	      [[entity_i^n for i in range(L)] for n in range(N)]
+	word_idxs: N x L Long Tensor
+	       [[word_i^n for i in range(L)] for n in range(N)]
+	pos_idxs: N x L Long Tensor
+	     [[entity_order_i^n for i in range(L)] for n in range(N)]
+	word_lens: N-dim Long Tensor storing the length of each word in characters
+	sent_lens: N x L Long Tensor storing the length of each sent in words
     """
-    with open(json_file, 'r') as f:
-      data_dicts = json.load(f)
+    ori_data = json.load(open(data_file_name))
 
-    if not os.path.isfile(word2idx_file) or not os.path.isfile(ner2idx_file) or not os.path.isfile(char2idx_file):
-      for data_dict in data_dicts:
-        text = word_tokenize(SPC.join(data_dict['text'].split()))
-				entities = data_dict['entities']
-        relations = data_dict['interactions']
-        
-        for word in text:
-					if word == SPC:
-						continue
-
-          if not word in self.word2idx:
-            self.word2idx[word] = len(self.word2idx)
-          
-          for char in word:
-            if not char in self.char2idx:
-              self.char2idx[char] = len(self.char2idx)
-          
-        for entity in entities: # Create ner2idx
-          entity_label = entity['label']
-          if not entity_label in self.ner2idx:
-            self.ner2idx[entity_label] = len(self.ner2idx)
-
-        for rel in relations:
-          self.rel2idx[rel['type']] = rel['label']  
-            
-      with open(word2idx_file, 'w') as word2idx_f,\
-           open(char2idx_file, 'w') as char2idx_f,\
-           open(ner2idx_file, 'w') as ner2idx_f,\
-           open(rel2idx_file, 'w') as rel2idx_f:
-          json.dump(self.word2idx, word2idx_f, indent=4, sort_keys=True) 
-          json.dump(self.char2idx, char2idx_f, indent=4, sort_keys=True)
-          json.dump(self.ner2idx, ner2idx_f, indent=4, sort_keys=True)
-          json.dump(self.rel2idx, rel2idx_f, indent=4, sort_keys=True)
-    else:
-      self.word2idx = json.load(open(word2idx_file))
-      self.char2idx = json.load(open(char2idx_file))
-      self.ner2idx = json.load(open(ner2idx_file))
-      self.rel2idx = json.load(open(rel2idx_file))
-      
-    print('Size of vocabs={}'.format(len(self.word2idx)))
-    print('Number of entity types={}'.format(len(self.char2idx)))
-    print('Number of character types={}'.format(len(self.ner2idx)))
-
-    word_idxs = []
-    char_idxs = []
-    ner_idxs = []
-    pos_idxs = []
-    word_lens = []
-    char_lens = []
+    char2id = json.load(open(os.path.join(self.out_path, 'char2id.json')))
+    word2id = json.load(open(os.path.join(self.out_path, 'word2id.json')))
+    ner2id = json.load(open(os.path.join(self.out_path, 'ner2id.json')))
     
-    cur_word_idxs = np.zeros(self.max_nwords, dtype=np.int)
-    cur_char_idxs = np.zeros((self.max_nwords, self.max_nchars_word), dtype=np.int)
-    cur_char_lens = np.zeros(self.max_nwords, dtype=np.int)
-    for ex, data_dict in enumerate(data_dicts):
-      print('{} instance {}'.format(self.split, ex))
-			text = word_tokenize(SPC.join(data_dict['text'].split()))
-      entities = data_dict['entities']
+    sen_tot = len(ori_data)
+    sen_word = np.zeros((sen_tot, max_length), dtype = np.int64)
+    sen_pos = np.zeros((sen_tot, max_length), dtype = np.int64)
+    sen_ner_char = np.zeros((sen_tot, max_length*char_limit), dtype = np.int64)
+    sen_ner = np.zeros((sen_tot, max_length), dtype = np.int64)
+    sen_char = np.zeros((sen_tot, max_length, char_limit), dtype = np.int64)
 
-      # Load word and character labels and the word spans
-      spans = np.zeros(len(text), dtype=np.int)
-			start = 0
-      for i_w, w in enumerate(text):
-        if i_w >= self.max_nwords or start >= self.max_nchars_sent:
-          break
-          
-				w = w[:self.max_nchars_word]
-        spans[i_w] = start + len(w) 
-        start = spans[i_w]
-				cur_char_lens[i_w] = len(w)
-				cur_word_idxs[i_w] = self.word2idx.get(w, 0)
-        for i_c, c in enumerate(w):
-          cur_char_idxs[i_w, i_c] = self.char2idx.get(c, 0)
+    new_data = []
+    for i, item in enumerate(ori_data):
+      words = word_tokenize(item['text'].replace(' ', SPC))
+      sen_word_char = np.zeros(max_length*char_limit, dtype = np.int64)
+      j = 0
+      start = 0
+      for word in words:
+        if word == SPC:
+          start += len(word)
+          continue
 
-      # Load character-level entity labels
-      labels_char_level = np.zeros(self.max_nchars_sent)
-      for i_e, entity in enumerate(entities):
-        entity_label = entity['label']
-        for name, name_info in entity['names'].items():
-          if name_info['is_mentioned']:
-            mentions = name_info['mentions']    
-            for mention in mentions:
-              start, end = mention[0], mention[1]
-              end = start + min(end - start, self.max_nchars_sent)
-              labels_char_level[start:end] = self.ner2idx.get(entity_label, 0)
+        if j < max_length:
+          word = word.lower()
+          if word in word2id:
+            sen_word[i][j] = word2id[word]
+          else:
+            sen_word[i][j] = word2id['UNK']
 
-      # Convert the character-level entity labels to word-level entity labels
-      cur_ner_idxs = np.zeros(self.max_nwords, dtype=np.int)
-      cur_pos_idxs = np.zeros(self.max_nwords, dtype=np.int) 
-      i_e = 1
-      for i_w, word in text:
-          # Sentence lengths in words
-          if i_w >= self.max_nwords:
-            break 
+          for c_idx, k in enumerate(list(word)):
+            if c_idx>=char_limit:
+              break
+            sen_char[i,j,c_idx] = char2id.get(k, char2id['UNK'])
 
-          # Entity ids
-          entity_id = labels_char_level[spans[i_w]-1]
-          cur_ner_idxs[i_w] = entity_id
-          
-          # Position ids
-          if not entity_id == self.ner2idx[NULL]:
-            cur_pos_idxs[i_w] = i_e
-            i_e += 1
+          sen_word_char[start:start+len(word)] = j
+        j += 1
+      for j in range(j + 1, max_length):
+        sen_word[i][j] = word2id['BLANK']
+        start += len(word)
 
-      word_idxs.append(cur_word_idxs)
-      word_lens.append(min(len(text), self.max_nwords))
-      char_idxs.append(cur_char_idxs)
-      char_lens.append(cur_char_lens)
-      ner_idxs.append(cur_ner_idxs)
-      pos_idxs.append(cur_pos_idxs)
+      entities = item['entities']
+      mentions = []
+      for idx in range(len(entities)):
+        for k in entities[idx]['names']:
+          for i_m, em in enumerate(entities[idx]['names'][k]['mentions']):
+            print('em[0], em[1], sent_word_char[em[0]]: ', em[0], em[1], sen_word_char[em[0]], sen_word_char[:10])
+            start = sen_word_char[em[0]]
+            end = sen_word_char[em[1]-1]+1
+            sen_ner_char[start:end] = ner2id[entities[idx]['label']]
+            entities[idx]['names'][k]['mentions'][i_m][0] = int(start)
+            entities[idx]['names'][k]['mentions'][i_m][1] = int(end)
+            mentions.append([start, end])
 
-    self.word_idxs = np.asarray(word_idxs)
-    self.char_idxs = np.asarray(char_idxs)
-    self.ner_idxs = np.asarray(ner_idxs)
-    self.pos_idxs = np.asarray(pos_idxs)
-    self.word_lens = np.asarray(word_lens)
-    self.char_lens = np.asarray(char_lens)
-    np.save('{}/prepro_data/{}_word.npy'.format(self.data_dir, self.split), self.word_idxs)
-    np.save('{}/prepro_data/{}_char.npy'.format(self.data_dir, self.split), self.char_idxs)
-    np.save('{}/prepro_data/{}_pos.npy'.format(self.data_dir, self.split), self.pos_idxs)
-    np.save('{}/prepro_data/{}_ner.npy'.format(self.data_dir, self.split), self.ner_idxs)
+      mentions = sorted(mentions, key=lambda x:x[0])
+      for i_m, mention in enumerate(mentions, 1):
+        sen_pos[i][mention[0]:mention[1]] = i_m
+      new_data.append({'text': item['text'], 'entities': entities})
+        
+    np.save(os.path.join(self.out_path, self.split+'_word.npy'), sen_word)
+    np.save(os.path.join(self.out_path, self.split+'_pos.npy'), sen_pos)
+    np.save(os.path.join(self.out_path, self.split+'_ner.npy'), sen_ner)
+    np.save(os.path.join(self.out_path, self.split+'_char.npy'), sen_char)
+    json.dump(new_data, open(os.path.join(self.out_path, self.split+'_new.json'), 'w'), indent=4, sort_keys=True)
+
   
-	def load_word_embed(path: str,
-											dimension: int,
-											*,
-											skip_first: bool = False:
-											freeze: bool = False,
-											sep: str = ' ', 
-											out_file = 'vec.npy'
-											): # TODO
-		embed_matrix = [[0.0] * dimension]
-		with open(path) as r:
-			if skip_first:
-					r.readline()
-			for line in r:
-					segments = line.rstrip('\n').rstrip(' ').split(sep)
-					word = segments[0]
-					if not word in self.word2idx:
-						continue
-					
-					print('\rEmbedding {} for {}'.format(word), end='')
-					embed = [float(x) for x in segments[1:]]
-					embed_matrix.append(embed)
+  def load_word_embed(path: str,
+                      dimension: int,
+                      skip_first: bool = False,
+                      sep: str = ' ', 
+                      out_file = 'vec.npy'): # TODO
+        embed_matrix = [[0.0] * dimension]
+        with open(path) as r:
+            if skip_first:
+              r.readline()
+            for line in r:
+              segments = line.rstrip('\n').rstrip(' ').split(sep)
+              word = segments[0]
+              if not word in self.word2idx:
+                continue
+                    
+              print('\rEmbedding {} for {}'.format(word), end='')
+              embed = [float(x) for x in segments[1:]]
+              embed_matrix.append(embed)
 
-		np.save(out_file, np.asarray(embed_matrix))
+        np.save(out_file, np.asarray(embed_matrix))
 
   # def get_batch(self):
   def __getitem__(self, idx):
@@ -232,6 +172,6 @@ class BioRelDataset(Dataset):
     return word
 
 if __name__ == '__main__':
-  
   train_set = BioRelDataset('1.0alpha7.train.json', {'split': 'train'})
   dev_set = BioRelDataset('1.0alpha7.dev.json', {'split': 'dev'})
+	
