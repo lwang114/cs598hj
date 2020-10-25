@@ -78,7 +78,6 @@ class BioRelDataset(Dataset):
     sen_tot = len(ori_data)
     sen_word = np.zeros((sen_tot, max_length), dtype = np.int64)
     sen_pos = np.zeros((sen_tot, max_length), dtype = np.int64)
-    sen_ner_char = np.zeros((sen_tot, max_length*char_limit), dtype = np.int64)
     sen_ner = np.zeros((sen_tot, max_length), dtype = np.int64)
     sen_char = np.zeros((sen_tot, max_length, char_limit), dtype = np.int64)
 
@@ -107,6 +106,7 @@ class BioRelDataset(Dataset):
 
           sen_word_char[start:start+len(word)] = j
         j += 1
+        start += len(word)
       for j in range(j + 1, max_length):
         sen_word[i][j] = word2id['BLANK']
         start += len(word)
@@ -116,19 +116,19 @@ class BioRelDataset(Dataset):
       for idx in range(len(entities)):
         for k in entities[idx]['names']:
           for i_m, em in enumerate(entities[idx]['names'][k]['mentions']):
-            print('em[0], em[1], sent_word_char[em[0]]: ', em[0], em[1], sen_word_char[em[0]], sen_word_char[:10])
+            # print('em[0], em[1], sent_word_char[em[0]]: ', em[0], em[1], sen_word_char[em[0]], sen_word_char[:10])
             start = sen_word_char[em[0]]
             end = sen_word_char[em[1]-1]+1
-            sen_ner_char[start:end] = ner2id[entities[idx]['label']]
+            sen_ner[i][start:end] = ner2id[entities[idx]['label']]
             entities[idx]['names'][k]['mentions'][i_m][0] = int(start)
             entities[idx]['names'][k]['mentions'][i_m][1] = int(end)
             mentions.append([start, end])
-
+          print('Number of entity mention words: {}'.format((sen_ner[i] > 0).sum()))
       mentions = sorted(mentions, key=lambda x:x[0])
       for i_m, mention in enumerate(mentions, 1):
         sen_pos[i][mention[0]:mention[1]] = i_m
       new_data.append({'text': item['text'], 'entities': entities})
-        
+
     np.save(os.path.join(self.out_path, self.split+'_word.npy'), sen_word)
     np.save(os.path.join(self.out_path, self.split+'_pos.npy'), sen_pos)
     np.save(os.path.join(self.out_path, self.split+'_ner.npy'), sen_ner)
