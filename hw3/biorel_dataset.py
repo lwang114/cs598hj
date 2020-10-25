@@ -39,7 +39,7 @@ class BioRelDataset(Dataset):
 
   def load_data(self, data_file_name,
                 char_limit = 16,
-                max_length = 512):
+                max_length = 256):
     """
       Args:
 	data_file_name: name of the data file in json format containing the annotations of the sentences	   

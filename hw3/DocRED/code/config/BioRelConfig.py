@@ -49,7 +49,7 @@ class BioRelConfig(object):
 		self.use_bag = False
 		self.use_gpu = True
 		self.is_training = True
-		self.max_length = 512
+		self.max_length = 256 # XXX 512
 		self.pos_num = 2 * self.max_length
 		self.entity_num = self.max_length
 		self.relation_num = len(json.load(open(os.path.join(self.data_path, 'rel2id.json'), 'r'))) # XXX 97
@@ -73,7 +73,7 @@ class BioRelConfig(object):
 
 		self.period = 50
 
-		self.batch_size = 40
+		self.batch_size = 16 # 40
 		self.h_t_limit = 1800
 
 		self.test_batch_size = self.batch_size
@@ -187,7 +187,6 @@ class BioRelConfig(object):
 
 	def get_train_batch(self):
 		random.shuffle(self.train_order)
-
 		context_idxs = torch.LongTensor(self.batch_size, self.max_length).cuda()
 		context_pos = torch.LongTensor(self.batch_size, self.max_length).cuda()
 		h_mapping = torch.Tensor(self.batch_size, self.h_t_limit, self.max_length).cuda()
@@ -207,7 +206,7 @@ class BioRelConfig(object):
 
 		for b in range(self.train_batches):
 			# if b > 1: # XXX
-			# 	break 
+			#	break 
 			start_id = b * self.batch_size
 			cur_bsz = min(self.batch_size, self.train_len - start_id)
 			cur_batch = list(self.train_order[start_id: start_id + cur_bsz])
@@ -232,7 +231,7 @@ class BioRelConfig(object):
 				context_pos[i].copy_(torch.from_numpy(self.data_train_pos[index, :]))
 				context_char_idxs[i].copy_(torch.from_numpy(self.data_train_char[index, :]))
 				context_ner[i].copy_(torch.from_numpy(self.data_train_ner[index, :]))
-
+				
 				for j in range(self.max_length):
 					if self.data_train_word[index, j]==0:
 						break
@@ -243,10 +242,10 @@ class BioRelConfig(object):
 				idx2label = defaultdict(list)
 
 				for label in labels:
- 					h = label['participants'][0]
- 					t = label['participants'][1]
- 					idx2label[(h, t)].append(label['label'])
- 					# idx2label[(label['h'], label['t'])].append(label['r'])
+					h = label['participants'][0]
+					t = label['participants'][1]
+					idx2label[(h, t)].append(label['label'])
+					# idx2label[(label['h'], label['t'])].append(label['r'])
 
 				# Convert the entity label sequence from character level to word level
 
@@ -271,9 +270,9 @@ class BioRelConfig(object):
 					# tlist = ins['vertexSet'][t_idx]
 					hlist = [h_mention for h_info in hlist_by_names for h_mention in h_info['mentions'] if h_info['is_mentioned']]
 					tlist = [t_mention for t_info in tlist_by_names for t_mention in t_info['mentions'] if t_info['is_mentioned']]
-                                                
+						
 					for h in hlist:
-						h[0] = inv_span[int(h[0])] # Convert h[0] and h[1] to be in terms of words instead of characters
+						h[0] = inv_span[int(h[0])] # Convert h[0] and h[1] to be in number of words instead of characters
 						h[1] = inv_span[int(h[1]-1)]
 						if h[1] == h[0]:
 							h[1] += 1
@@ -307,13 +306,13 @@ class BioRelConfig(object):
 				na_triple = [(h_idx, t_idx) for h_idx in range(L) for t_idx in range(L) if not (h_idx, t_idx) in train_tripe]
 				lower_bound = len(na_triple)
 				# random.shuffle(ins['na_triple'])
-				# lower_bound = max(20, len(train_tripe)*3)          
-        
+				# lower_bound = max(20, len(train_tripe)*3)	     
+	
 				for j, (h_idx, t_idx) in enumerate(na_triple, len(train_tripe)):
 					hlist_by_names = ins['entities'][h_idx]['names'].values()
 					tlist_by_names = ins['entities'][t_idx]['names'].values()
 					
-					hlist = [h_mention for h_info in hlist_by_names for h_mention in h_info['mentions'] if h_info['is_mentioned']]                 
+					hlist = [h_mention for h_info in hlist_by_names for h_mention in h_info['mentions'] if h_info['is_mentioned']]		       
 					tlist = [t_mention for t_info in tlist_by_names for t_mention in t_info['mentions'] if t_info['is_mentioned']]
 					
 					for h in hlist:
@@ -345,7 +344,8 @@ class BioRelConfig(object):
 			input_lengths = (context_idxs[:cur_bsz] > 0).long().sum(dim=1)
 			max_c_len = int(input_lengths.max())
 
-			yield {'context_idxs': context_idxs[:cur_bsz, :max_c_len].contiguous(),
+			
+			data_dict = {'context_idxs': context_idxs[:cur_bsz, :max_c_len].contiguous(),
 				   'context_pos': context_pos[:cur_bsz, :max_c_len].contiguous(),
 				   'h_mapping': h_mapping[:cur_bsz, :max_h_t_cnt, :max_c_len],
 				   't_mapping': t_mapping[:cur_bsz, :max_h_t_cnt, :max_c_len],
@@ -356,8 +356,8 @@ class BioRelConfig(object):
 				   'relation_mask': relation_mask[:cur_bsz, :max_h_t_cnt],
 				   'context_ner': context_ner[:cur_bsz, :max_c_len].contiguous(),
 				   'context_char_idxs': context_char_idxs[:cur_bsz, :max_c_len].contiguous(),
-				   'ht_pair_pos': ht_pair_pos[:cur_bsz, :max_h_t_cnt],
-				   }
+				   'ht_pair_pos': ht_pair_pos[:cur_bsz, :max_h_t_cnt]}
+			yield data_dict
 
 	def get_test_batch(self):
 		context_idxs = torch.LongTensor(self.test_batch_size, self.max_length).cuda()
@@ -657,7 +657,6 @@ class BioRelConfig(object):
 				predict_re = torch.sigmoid(predict_re)
 
 			predict_re = predict_re.data.cpu().numpy()
-			print('len(labels), len(indexs): {} {}'.format(len(labels), len(indexes)))
 			for i in range(len(labels)):
 				label = labels[i]
 				index = indexes[i]

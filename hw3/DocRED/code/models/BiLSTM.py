@@ -37,7 +37,7 @@ class BiLSTM(nn.Module):
 		input_size = config.data_word_vec.shape[1]
 		if self.use_entity_type:
 			input_size += config.entity_type_size
-			self.ner_emb = nn.Embedding(7, config.entity_type_size, padding_idx=0)
+			self.ner_emb = nn.Embedding(config.entity_type_size, config.entity_type_size, padding_idx=0) # XXX Assume one label per entity
 
 		if self.use_coreference:
 			input_size += config.coref_size
@@ -45,7 +45,7 @@ class BiLSTM(nn.Module):
 			self.entity_embed = nn.Embedding(config.max_length, config.coref_size, padding_idx=0)
 
 		# input_size += char_hidden
-
+		
 		self.rnn = EncoderLSTM(input_size, hidden_size, 1, True, True, 1 - config.keep_prob, False)
 		self.linear_re = nn.Linear(hidden_size*2, hidden_size)
 
@@ -66,7 +66,6 @@ class BiLSTM(nn.Module):
 
 		if self.use_entity_type:
 			sent = torch.cat([sent, self.ner_emb(context_ner)], dim=-1)
-
 		# sent = torch.cat([sent, context_ch], dim=-1)
 		context_output = self.rnn(sent, context_lens)
 
