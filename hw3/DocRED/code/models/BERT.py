@@ -1,9 +1,13 @@
 import torch
- torch.autograd as autograd
+import torch.autograd as autograd
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.autograd import Variable
+from torch import nn
 from transformers import BertModel
 import logging
 
-class BERT: # TODO
+class BERT(nn.Module): # TODO
 	def __init__(self, config):
 		super(BERT, self).__init__()
 		self.config = config
@@ -14,7 +18,7 @@ class BERT: # TODO
 		hidden_size = 768 # XXX hidden dimension for Bert
 		if self.use_entity_type:
 			hidden_size += config.entity_type_size
-			self.ner_emb = nn.Embedding(config.entity_type_size, config.entity_type_size, padding_idx=0) # Assume one label per entity
+			self.ner_embed = nn.Embedding(config.entity_type_size, config.entity_type_size, padding_idx=0) # Assume one label per entity
 		
 		if self.use_coreference:
 			hidden_size += config.coref_size
