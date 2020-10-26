@@ -144,30 +144,30 @@ class BioRelGCNDataset(Dataset):
 		# Parse the sentence
 		merged_tokens = []
 		token_to_merged_token = np.zeros(max_length, dtype = np.int64)  
-		j = 0
+		j = -1
 		for idx, token in enumerate(sent[:max_length]):
 			if token[:2] == '##':
-				sent[-1] += token[2:]
+				merged_tokens[-1] += token[2:]
 			elif word == CLS or word == SEP:
 				continue
 			else:
 				j += 1
-				sent.append(word)
+				merged_tokens.append(word)
 			token_to_merged_token[idx] = j
 		
 		merged_token_to_token = [np.nonzero(token_to_merged_token==merge_idx)[0] for merge_idx in range(j)]
 
-		parsed_sent = dep_parser.predict(' '.join(sent))
+		parsed_sent = dep_parser.predict(' '.join(merged_tokens))
 		predicted_heads = parsed_sent['predicted_heads']
 		A = np.zeros((max_length, max_length))
 		for t_idx, token in enumerate(sent[:max_length]):
+			if token == CLS or token == SEP:
+				continue
 			merge_t_idx = token_to_merged_token[t_idx]
 			merge_h_idx = predicted_heads[merge_t_idx]
 			h_idxs = deepcopy(merged_token_to_token[merge_h_idx])
 			for h_idx in h_idxs:
-				if h_idx >= max_length:
-					continue
-				A[h_idx, t_idx] = 1.  
+				A[h_idx, t_idx] = 1. 
 		print(A) # XXX
 		return A
 	
