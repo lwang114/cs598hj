@@ -1,7 +1,8 @@
 import json
 import numpy as np
-import torch
 import os
+from copy import deepcopy
+import torch
 from torch.utils.data import Dataset, DataLoader
 from nltk.tokenize import word_tokenize
 from transformers import BertTokenizer
@@ -10,14 +11,10 @@ CLS = '[CLS]'
 SEP = '[SEP]'
 SPC = '#'
 BLANK = 0
-PUNCT = [' ', ',', '.', '(', ')']
 class BioRelBertDataset(Dataset):
   def __init__(self, json_file,
                      config={}):
-    ner2idx_file = config.get('ner2idx_file', 'ner2id.json') 
-    char2idx_file = config.get('char2idx_file', 'char2id.json')
-    rel2idx_file = config.get('rel2idx_file', 'rel2id.json')
-    word_vec_file = config.get('word_vec_file', 'vec.npy') # XXX Placeholder
+    ner2idx_file = config.get('ner2idx_file', 'ner2id.json')
     self.split = config.get('split', 'train')
     self.max_nchars_word = config.get('max_nchars_per_word', 16)
     self.max_nchars_sent = config.get('max_nchars_per_sent', 256)
@@ -67,6 +64,8 @@ class BioRelBertDataset(Dataset):
         sent_lens: N x L Long Tensor storing the length of each sent in words
     """
     ori_data = json.load(open(data_file_name))
+    ner2id = json.load(open(os.path.join(self.out_path, 'ner2id.json')))
+
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')    
 
     sen_tot = len(ori_data)
@@ -79,9 +78,8 @@ class BioRelBertDataset(Dataset):
     new_data = []
     for i, item in enumerate(ori_data):
       # Use BERT's own tokenizer
-      text = ' '.join([CLS, item['text'].replace(' ', SPC), SEP]) # TODO Check the effect of adding SPC 
-      tokenized_text = tokenizer.tokenize(tokenized_text)
-      print(tokenized_text)
+      text = ' '.join([CLS, item['text'].replace(' ', SPC), SEP]) 
+      tokenized_text = tokenizer.tokenize(text)
       sen_word_char = np.zeros(max_length*char_limit, dtype = np.int64)
       j = 0
       start = 0
@@ -96,9 +94,13 @@ class BioRelBertDataset(Dataset):
           word = word[2:] 
                                 
         if j < max_length:
-          sent_word_char[start:start+len(word)] = j
+          sen_word_char[start:start+len(word)] = j
           j += 1
-          sen_word[i] = tokenizer.convert_tokens_to_ids([word for word in tokenized_text if word != SPC])[:max_length]
+
+      tokenized_text_no_spc = [word for word in tokenized_text if word != SPC]
+      # print(tokenized_text_no_spc)
+      indexed_tokens = tokenizer.convert_tokens_to_ids(tokenized_text_no_spc)[:max_length]
+      sen_word[i, :len(indexed_tokens)] = deepcopy(indexed_tokens)
       
       for j in range(j + 1, max_length):
         sen_word[i][j] = BLANK
@@ -121,11 +123,11 @@ class BioRelBertDataset(Dataset):
         sen_pos[i][mention[0]:mention[1]] = i_m
       new_data.append({'text': item['text'], 'entities': entities})
         
-    np.save(os.path.join(self.out_path, self.split+'_word.npy'), sen_word)
-    np.save(os.path.join(self.out_path, self.split+'_pos.npy'), sen_pos)
-    np.save(os.path.join(self.out_path, self.split+'_ner.npy'), sen_ner)
-    np.save(os.path.join(self.out_path, self.split+'_char.npy'), sen_char)
-    json.dump(new_data, open(os.path.join(self.out_path, self.split+'_new.json'), 'w'), indent=4, sort_keys=True)
+    np.save(os.path.join(self.out_path, self.split+'_bert_word.npy'), sen_word)
+    np.save(os.path.join(self.out_path, self.split+'_bert_pos.npy'), sen_pos)
+    np.save(os.path.join(self.out_path, self.split+'_bert_ner.npy'), sen_ner)
+    np.save(os.path.join(self.out_path, self.split+'_bert_char.npy'), sen_char)
+    json.dump(new_data, open(os.path.join(self.out_path, self.split+'_bert_new.json'), 'w'), indent=4, sort_keys=True)
 
   # def get_batch(self):
   def __getitem__(self, idx):
@@ -142,5 +144,5 @@ class BioRelBertDataset(Dataset):
     return word
 
 if __name__ == '__main__':
-  train_set = BioRelDataset('1.0alpha7.train.json', {'split': 'train', 'data_dir': '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw3/bert/'})
-  dev_set = BioRelDataset('1.0alpha7.dev.json', {'split': 'dev', 'data_dir': '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw3/bert/'})
+  train_set = BioRelBertDataset('1.0alpha7.train.json', {'split': 'train'})
+  dev_set = BioRelBertDataset('1.0alpha7.dev.json', {'split': 'dev'})
