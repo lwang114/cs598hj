@@ -1,41 +1,37 @@
 import json
 import os
-from nltk.tree import Tree
-from nltk.parse import stanford
-from nltk.tokenize import sent_tokenize 
+from allennlp.predictors.predictor import Predictor
+import allennlp_models.structured_prediction
+from allennlp.data.tokenizers.spacy_tokenizer import SpacyTokenizer
+# from nltk.tree import Tree
+# from nltk.parse import stanford
+# from nltk.tokenize import sent_tokenize 
 from copy import deepcopy
-
 
 def extract_dependency_parse(data_file, out_file, dep_parser_path='/Users/liming/nltk_data/stanford-parser-full-2018-10-17/edu/stanford/nlp/models/parser/nndep/english_UD.gz'):
   # Load the dependency parser
-  dep_parser = stanford.StanfordDependencyParser(path_to_models_jar=dep_parser_path)
+  dep_parser = Predictor.from_path("https://storage.googleapis.com/allennlp-public-models/biaffine-dependency-parser-ptb-2020.04.06.tar.gz") # stanford.StanfordDependencyParser(path_to_models_jar=dep_parser_path)
   
   with open(data_file, 'r') as f_in,\
-       open('{}_parse_trees.json'.format(out_file), 'w') as f_out_tree,\
-       open('{}_adjacency_matrices.json'.format(out_file), 'w') as f_out_adj:  
+       open('{}.json'.format(out_file), 'w') as f_out:  
       for ex, line in enumerate(f_in):
-        if ex > 30: # XXX
-          break 
+        # if ex > 30: # XXX
+        #   break 
+        print('\rExample {}'.format(ex), end='')
         data_dict = json.loads(line)
-        sent = sent_tokenize(' '.join(data_dict['tokens']))
-        
-        sent_len = len(sent)
+        sent = data_dict['tokens']
+
         # Parse the sentence
-        parsed_sent = dep_parser.raw_parse_sents(sent)
-        tree = Tree.fromstring(str(parsed_sent))
-        queue = [tree]
-        A = np.zeros((sent_len, sent_len))
-        # Traverse the tree to generate the adjacency matrix
-        while len(queue) != 0: # TODO
-          cur_tree = queue.pop(0)
-          for child in cur_tree:
-            if isinstance(child, Tree):
-              queue.append(child)
-            else:
-              A[cur_tree.label(), child] = 1.
-            
-        f_out_adj.write('{}\n'.format(json.dumps({'adjacency_matrix': A.tolist()}, indent=4, sort_keys=True)))
-        f_out_tree.write('{}\n'.format(tree.pprint()))
+        sent_len = len(sent)
+        parsed_sent = dep_parser.predict(' '.join(sent))
+        predicted_labels = parsed_sent['predicted_dependencies']
+        predicted_heads = parsed_sent['predicted_heads']
+        dep_parse_dict = {'predicted_dependencies': predicted_labels,
+                          'predicted_heads': predicted_heads}
+
+        # Save the parse info into the data dict
+        data_dict['dep_parse'] = dep_parse_dict
+        f_out.write('{}\n'.format(json.dumps(data_dict)))
         
 
 def prepare_iob(data_file, out_file): 
@@ -87,16 +83,23 @@ def prepare_iob(data_file, out_file):
     json.dump(tag_to_idx, f_t, indent=4, sort_keys=True)
 
 if __name__ == '__main__':
+  path_file = 'data/path.json'
+  root = '/ws/ifp-53_2/hasegawa/lwang114/fall2020/'
+
   if not os.path.isdir('data'):
     os.mkdir('data')
-  if not os.path.isfile('data/path.json'):
-    path = {'train': 'kbp2019.json',
-            'dev': 'kbp2019.json', # '/ws/ifp-53_2/hasegawa/lwang114/fall2020/en.dev.json',
-            'test': 'kbp2019.json'} # '/ws/ifp-53_2/hasegawa/lwang114/fall2020/en.test.json'}
-    with open('data/path.json', 'w') as f:
+  if not os.path.isfile(path_file):
+
+    path = {'root': root,
+            'train': '{}/kbp2019.json'.format(root),
+            'dev': '{}/kbp2019.json'.format(root), # '/ws/ifp-53_2/hasegawa/lwang114/fall2020/en.dev.json',
+            'test': '{}/kbp2019.json'.format(root)} # '/ws/ifp-53_2/hasegawa/lwang114/fall2020/en.test.json'}
+    with open(path_file, 'w') as f:
       json.dump(path, f, indent=4, sort_keys=True)
   else:
-    with open('data/path.json', 'r') as f:
+    with open(path_file, 'r') as f:
       path = json.load(f)
   
-  extract_dependency_parse(path['train'], out_file='kbp')
+  extract_dependency_parse(path['train'], out_file='{}_dep_parsed.json'.format(path['train'].split('.json')[0]))
+  extract_dependency_parse(path['dev'], out_file='{}_dep_parsed.json'.format(path['dev'].split('.json')[0]))
+  extract_dependency_parse(path['test'], out_file='{}_dep_parsed.json'.format(path['test'].split('.json')[0]))
