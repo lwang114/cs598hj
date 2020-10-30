@@ -62,7 +62,7 @@ class BioRelGCNConfig(object):
 
 		self.checkpoint_dir = './checkpoint'
 		self.fig_result_dir = './fig_result'
-		self.test_epoch = 5
+		self.test_epoch = 1 # 5
 		self.pretrain_model = None
 
 
@@ -142,7 +142,7 @@ class BioRelGCNConfig(object):
 		self.data_train_pos = np.load(os.path.join(self.data_path, prefix+'_pos.npy'))
 		self.data_train_ner = np.load(os.path.join(self.data_path, prefix+'_ner.npy'))
 		self.data_train_char = np.load(os.path.join(self.data_path, prefix+'_char.npy'))
-		self.data_train_adj = np.load(os.path.join(self.data_path, prefix+'_depmat.npy')) # TODO
+		self.data_train_adj = np.load(os.path.join(self.data_path, prefix+'_depmat.npy')) 
 		self.train_file = json.load(open(os.path.join(self.data_path, prefix+'.json')))
 
 		print("Finish reading")
@@ -169,7 +169,7 @@ class BioRelGCNConfig(object):
 		self.data_test_pos = np.load(os.path.join(self.data_path, prefix+'_pos.npy'))
 		self.data_test_ner = np.load(os.path.join(self.data_path, prefix+'_ner.npy'))
 		self.data_test_char = np.load(os.path.join(self.data_path, prefix+'_char.npy'))
-		self.data_test_adj = np.load(os.path.join(self.data_path, prefix+'_depmat.npy')) # TODO
+		self.data_test_adj = np.load(os.path.join(self.data_path, prefix+'_depmat.npy'))
 		self.test_file = json.load(open(os.path.join(self.data_path, prefix+'.json')))
 
 
@@ -202,14 +202,12 @@ class BioRelGCNConfig(object):
 		context_char_idxs = torch.LongTensor(self.batch_size, self.max_length, self.char_limit).cuda()
 
 		relation_label = torch.LongTensor(self.batch_size, self.h_t_limit).cuda()
-		
-		ht_pair_pos = torch.LongTensor(self.batch_size, self.h_t_limit).cuda()
 
 		context_adj = torch.FloatTensor(self.batch_size, self.max_length, self.max_length).cuda()
-		
+
+		ht_pair_pos = torch.LongTensor(self.batch_size, self.h_t_limit).cuda()
+
 		for b in range(self.train_batches):
-			# if b > 1: # XXX
-			#	break 
 			start_id = b * self.batch_size
 			cur_bsz = min(self.batch_size, self.train_len - start_id)
 			cur_batch = list(self.train_order[start_id: start_id + cur_bsz])
@@ -234,20 +232,20 @@ class BioRelGCNConfig(object):
 				context_pos[i].copy_(torch.from_numpy(self.data_train_pos[index, :]))
 				context_char_idxs[i].copy_(torch.from_numpy(self.data_train_char[index, :]))
 				context_ner[i].copy_(torch.from_numpy(self.data_train_ner[index, :]))
-				context_adj[i].copy_(torch.from_numpy(self.data_train_adj[index, :, :]))
+				context_adj[i].copy_(torch.from_numpy(self.data_train_adj[index, :, :] + np.eye(self.max_length))) # Add identity matrix to introduce self loop
 				for j in range(self.max_length):
 					if self.data_train_word[index, j]==0:
 						break
 					pos_idx[i, j] = j+1
 
 				ins = self.train_file[index]
-				labels = ins['interactions'] # ins['labels']
+				labels = ins['interactions']
 				idx2label = defaultdict(list)
 
 				for label in labels:
 					h = label['participants'][0]
 					t = label['participants'][1]
-					idx2label[(h, t)].append(label['label'])
+					idx2label[(h, t)].append(self.rel2id[str(label['label'])])
 					# idx2label[(label['h'], label['t'])].append(label['r'])
 
 				# Convert the entity label sequence from character level to word level
@@ -306,12 +304,12 @@ class BioRelGCNConfig(object):
 
 
 				L = len(ins['entities']) 
-				na_triple = [(h_idx, t_idx) for h_idx in range(L) for t_idx in range(L) if not (h_idx, t_idx) in train_tripe]
+				na_triple = [(h_idx, t_idx) for h_idx in range(L) for t_idx in range(L) if (not (h_idx, t_idx) in train_tripe and not (t_idx, h_idx) in train_tripe)]
 				# lower_bound = len(na_triple)
 				# random.shuffle(ins['na_triple'])
 				lower_bound = max(20, len(train_tripe))	     
 	
-				for j, (h_idx, t_idx) in enumerate(na_triple, len(train_tripe)):
+				for j, (h_idx, t_idx) in enumerate(na_triple[:lower_bound], len(train_tripe)):
 					hlist_by_names = ins['entities'][h_idx]['names'].values()
 					tlist_by_names = ins['entities'][t_idx]['names'].values()
 					
@@ -369,7 +367,7 @@ class BioRelGCNConfig(object):
 		h_mapping = torch.Tensor(self.test_batch_size, self.test_relation_limit, self.max_length).cuda()
 		t_mapping = torch.Tensor(self.test_batch_size, self.test_relation_limit, self.max_length).cuda()
 		context_ner = torch.LongTensor(self.test_batch_size, self.max_length).cuda()
-		context_adj = torch.FloatTensor(self.test_batch_size, self.max_length, self.max_length).cuda()
+		context_adj = torch.FloatTensor(self.batch_size, self.max_length, self.max_length).cuda()
 		context_char_idxs = torch.LongTensor(self.test_batch_size, self.max_length, self.char_limit).cuda()
 		relation_mask = torch.Tensor(self.test_batch_size, self.h_t_limit).cuda()
 		ht_pair_pos = torch.LongTensor(self.test_batch_size, self.h_t_limit).cuda()
@@ -401,14 +399,14 @@ class BioRelGCNConfig(object):
 				context_pos[i].copy_(torch.from_numpy(self.data_test_pos[index, :]))
 				context_char_idxs[i].copy_(torch.from_numpy(self.data_test_char[index, :]))
 				context_ner[i].copy_(torch.from_numpy(self.data_test_ner[index, :]))
-				context_adj[i].copy_(torch.from_numpy(self.data_train_adj[index, :, :]))
+				context_adj[i].copy_(torch.from_numpy(self.data_test_adj[index, :, :] + np.eye(self.max_length)))
 
 				idx2label = defaultdict(list)
 				ins = self.test_file[index]
 				for label in ins['interactions']:
 					h = label['participants'][0]
 					t = label['participants'][1]
-					idx2label[(h, t)].append(label['label'])
+					idx2label[(h, t)].append(self.rel2id[str(label['label'])])
 
 				text = ins['text'].replace(' ', SPC)
 				inv_span = np.zeros(len(text), dtype=np.int)
@@ -463,7 +461,11 @@ class BioRelGCNConfig(object):
 				for label in ins['interactions']:
 					h = label['participants'][0]
 					t = label['participants'][1]
-					label_set[(h, t)] = label['label']
+					if len(self.train_prefix.split('_')) == 1:
+						intrain_key = 'in'+self.train_prefix
+					else:
+						intrain_key = 'in'+'_'.join(self.train_prefix.split('_')[:-1])
+					label_set[(h, t, self.rel2id[str(label['label'])])] = False # intrain_key
 
 				labels.append(label_set)
 
@@ -532,14 +534,17 @@ class BioRelGCNConfig(object):
 		plt.title('Precision-Recall')
 		plt.grid(True)
 
+		outputs = []
+		labels = []
 		for epoch in range(self.max_epoch):
 
 			self.acc_NA.clear()
 			self.acc_not_NA.clear()
 			self.acc_total.clear()
 
-			for data in self.get_train_batch():
-
+			for ex, data in enumerate(self.get_train_batch()):
+				# if ex > 1: # XXX
+				#	break
 				context_idxs = data['context_idxs']
 				context_pos = data['context_pos']
 				h_mapping = data['h_mapping']
@@ -558,16 +563,17 @@ class BioRelGCNConfig(object):
 				predict_re = model(context_idxs, context_pos, context_ner, context_char_idxs, input_lengths, h_mapping, t_mapping, relation_mask, dis_h_2_t, dis_t_2_h, context_adj)
 				loss = torch.sum(BCE(predict_re, relation_multi_label)*relation_mask.unsqueeze(2)) /  (self.relation_num * torch.sum(relation_mask))
 
-
 				output = torch.argmax(predict_re, dim=-1)
 				output = output.data.cpu().numpy()
-
 				optimizer.zero_grad()
 				loss.backward()
 				optimizer.step()
 
 				relation_label = relation_label.data.cpu().numpy()
-
+				nrels = (relation_label >= 0).sum(axis=-1)
+				# print('relation_label.shape, nrels: {}'.format(relation_label.shape, nrels)) # XXX
+				labels.append([rel[:nrel] for rel, nrel in zip(relation_label.tolist(), nrels)])
+				outputs.append([out[:nrel] for out, nrel in zip(output.tolist(), nrels)])
 				for i in range(output.shape[0]):
 					for j in range(output.shape[1]):
 						label = relation_label[i][j]
@@ -602,14 +608,14 @@ class BioRelGCNConfig(object):
 				logging('| epoch {:3d} | time: {:5.2f}s'.format(epoch, time.time() - eval_start_time))
 				logging('-' * 89)
 
-
+				json.dump(outputs, open('{}/{}_epoch{}_train_predict_labels.json'.format(self.fig_result_dir, model_name, epoch), 'w'), indent=4, sort_keys=True)
+				json.dump(labels, open('{}/{}_epoch{}_train_gold_labels.json'.format(self.fig_result_dir, model_name, epoch), 'w'), indent=4, sort_keys=True)
 				if f1 > best_f1:
 					best_f1 = f1
 					best_auc = auc
 					best_epoch = epoch
 					path = os.path.join(self.checkpoint_dir, model_name)
 					torch.save(ori_model.state_dict(), path)
-
 					plt.plot(pr_x, pr_y, lw=2, label=str(epoch))
 					plt.legend(loc="upper right")
 					plt.savefig(os.path.join("fig_result", model_name))
@@ -619,7 +625,7 @@ class BioRelGCNConfig(object):
 		print("Storing best result...")
 		print("Finish storing")
 
-	def test(self, model, model_name, output=False, input_theta=-1):
+	def test(self, model, model_name, output=True, input_theta=-1):
 		data_idx = 0
 		eval_start_time = time.time()
 		# test_result_ignore = []
@@ -635,9 +641,7 @@ class BioRelGCNConfig(object):
 			if log_:
 				with open(os.path.join(os.path.join("log", model_name)), 'a+') as f_log:
 					f_log.write(s + '\n')
-
-
-
+ 
 		for data in self.get_test_batch():
 			with torch.no_grad():
 				context_idxs = data['context_idxs']
@@ -689,7 +693,6 @@ class BioRelGCNConfig(object):
 
 							for r in range(1, self.relation_num):
 								intrain = False
-
 								if (h_idx, t_idx, r) in label:
 									flag = True
 									if label[(h_idx, t_idx, r)]==True:
@@ -700,7 +703,6 @@ class BioRelGCNConfig(object):
 								#	test_result_ignore.append( ((h_idx, t_idx, r) in label, float(predict_re[i,j,r]),  titles[i], self.id2rel[r], index, h_idx, t_idx, r) )
 
 								test_result.append( ((h_idx, t_idx, r) in label, float(predict_re[i,j,r]), intrain,  titles[i], self.id2rel[r], index, h_idx, t_idx, r) )
-
 							if flag:
 								have_label += 1
 
@@ -712,7 +714,7 @@ class BioRelGCNConfig(object):
 			if data_idx % self.period == 0:
 				print('| step {:3d} | time: {:5.2f}'.format(data_idx // self.period, (time.time() - eval_start_time)))
 				eval_start_time = time.time()
-
+		json.dump(test_result, open(os.path.join(self.fig_result_dir, model_name+'_test_result.json'), 'w'), indent=4, sort_keys=True)
 		# test_result_ignore.sort(key=lambda x: x[1], reverse=True)
 		test_result.sort(key = lambda x: x[1], reverse=True)
 
@@ -760,7 +762,9 @@ class BioRelGCNConfig(object):
 		if output:
 			# output = [x[-4:] for x in test_result[:w+1]]
 			output = [{'index': x[-4], 'h_idx': x[-3], 't_idx': x[-2], 'r_idx': x[-1], 'r': x[-5], 'title': x[-6]} for x in test_result[:w+1]]
-			json.dump(output, open(self.test_prefix + "_index.json", "w"))
+			pred_file = os.path.join(self.fig_result_dir, '_'.join([self.test_prefix, model_name, 'index']))
+			json.dump(output, open(pred_file+'.json', "w"), indent=4, sort_keys=True)
+			self.convert_result(pred_file+'.json', pred_file+'_converted.json')
 
 		# plt.plot(pr_x, pr_y, lw=2, label=model_name)
 		# plt.legend(loc="upper right")
@@ -796,7 +800,25 @@ class BioRelGCNConfig(object):
 
 		return f1, auc, pr_x, pr_y
 
+	def convert_result(self, in_file, out_file):
+		print(out_file)
+		test_info = json.load(open(os.path.join(self.data_path, self.test_prefix+'.json')))
+		predict_info = json.load(open(in_file, 'r'))
+		converted_pred_info = []
+		for item in test_info:
+			item['interactions'] = []
+			converted_pred_info.append(item)
 
+		for item in predict_info:
+			idx = item['index']
+			rel = {'participants': [item['h_idx'], item['t_idx']],
+						 'type': 'bind',
+						 'implicit': False,
+						 'label': int(item['r'])
+						}
+			converted_pred_info[idx]['interactions'].append(rel)
+
+		json.dump(converted_pred_info, open(out_file, 'w'), indent=4, sort_keys=True)
 
 	def testall(self, model_pattern, model_name, input_theta):#, ignore_input_theta):
 		model = model_pattern(config = self)

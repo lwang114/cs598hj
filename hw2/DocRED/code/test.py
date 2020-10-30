@@ -15,11 +15,13 @@ import argparse
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model_name', type = str, default = 'BiLSTM', help = 'name of the model')
+parser.add_argument('--model_name', type = str, default = 'LSTM', help = 'name of the model')
 parser.add_argument('--save_name', type = str)
 
-parser.add_argument('--train_prefix', type = str, default = 'dev_train')
+parser.add_argument('--train_prefix', type = str, default = 'train')
 parser.add_argument('--test_prefix', type = str, default = 'dev_dev')
+parser.add_argument('--input_theta', type = float, default = -1)
+# parser.add_argument('--ignore_input_theta', type = float, default = -1)
 
 
 args = parser.parse_args()
@@ -29,15 +31,11 @@ model = {
 	'BiLSTM': models.BiLSTM,
 	'ContextAware': models.ContextAware,
 	'BERT': models.BERT,
-	'BiLSTM_Joint': models.BiLSTM_Joint
+	# 'LSTM_SP': models.LSTM_SP
 }
 
-if args.model_name == 'BiLSTM_Joint':
-	con = config.BioRelJointConfig(args)
-else:
-	con = config.BioRelConfig(args)
-con.set_max_epoch(200)
-con.load_train_data()
+con = config.Config(args)
+#con.load_train_data()
 con.load_test_data()
 # con.set_train_model()
-con.train(model[args.model_name], args.save_name)
+con.testall(model[args.model_name], args.save_name, args.input_theta)#, args.ignore_input_theta)

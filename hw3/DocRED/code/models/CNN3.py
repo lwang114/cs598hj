@@ -21,7 +21,7 @@ class CNN3(nn.Module):
 		# self.char_cnn = nn.Conv1d(char_dim,  char_hidden, 5)
 
 		self.coref_embed = nn.Embedding(config.max_length, config.coref_size, padding_idx=0)
-		self.ner_emb = nn.Embedding(7, config.entity_type_size, padding_idx=0)
+		self.ner_emb = nn.Embedding(config.entity_type_size, config.entity_type_size, padding_idx=0)
 
 		input_size = config.data_word_vec.shape[1] + config.coref_size + config.entity_type_size #+ char_hidden
 

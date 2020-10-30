@@ -17,10 +17,9 @@ import matplotlib.pyplot as plt
 import random
 from collections import defaultdict
 import torch.nn.functional as F
-from nltk.tokenize import word_tokenize
+
 
 IGNORE_INDEX = -100
-SPC = '#'
 is_transformer = False
 
 class Accuracy(object):
@@ -40,29 +39,29 @@ class Accuracy(object):
 		self.correct = 0
 		self.total = 0 
 
-class BioRelConfig(object):
+class BertConfig(object):
 	def __init__(self, args):
 		self.acc_NA = Accuracy()
 		self.acc_not_NA = Accuracy()
 		self.acc_total = Accuracy()
-		self.data_path = '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw3/prepro_data'
+		self.data_path = './prepro_data'
 		self.use_bag = False
 		self.use_gpu = True
 		self.is_training = True
-		self.max_length = 256 # XXX 512
+		self.max_length = 512
 		self.pos_num = 2 * self.max_length
 		self.entity_num = self.max_length
-		self.relation_num = len(json.load(open(os.path.join(self.data_path, 'rel2id.json'), 'r'))) # XXX 97
+		self.relation_num = 97
 
 		self.coref_size = 20
-		self.entity_type_size = len(json.load(open(os.path.join(self.data_path, 'ner2id.json'), 'r'))) # XXX 20
+		self.entity_type_size = 20
 		self.max_epoch = 200
 		self.opt_method = 'Adam'
 		self.optimizer = None
 
 		self.checkpoint_dir = './checkpoint'
 		self.fig_result_dir = './fig_result'
-		self.test_epoch = 1 # 5
+		self.test_epoch = 5
 		self.pretrain_model = None
 
 
@@ -73,7 +72,7 @@ class BioRelConfig(object):
 
 		self.period = 50
 
-		self.batch_size = 16 # 40
+		self.batch_size = 20
 		self.h_t_limit = 1800
 
 		self.test_batch_size = self.batch_size
@@ -137,16 +136,17 @@ class BioRelConfig(object):
 		print("Reading training data...")
 		prefix = self.train_prefix
 
-		print ('train', prefix)
 		self.data_train_word = np.load(os.path.join(self.data_path, prefix+'_word.npy'))
 		self.data_train_pos = np.load(os.path.join(self.data_path, prefix+'_pos.npy'))
 		self.data_train_ner = np.load(os.path.join(self.data_path, prefix+'_ner.npy'))
 		self.data_train_char = np.load(os.path.join(self.data_path, prefix+'_char.npy'))
+		self.data_train_pos_map = np.load(os.path.join(self.data_path, prefix+'_pos_map.npy'))
 		self.train_file = json.load(open(os.path.join(self.data_path, prefix+'.json')))
-
+		print ('train', prefix, len(self.data_train_word))
 		print("Finish reading")
 
 		self.train_len = ins_num = self.data_train_word.shape[0]
+		print(len(self.train_file))
 		assert(self.train_len==len(self.train_file))
 
 		self.train_order = list(range(ins_num))
@@ -168,8 +168,8 @@ class BioRelConfig(object):
 		self.data_test_pos = np.load(os.path.join(self.data_path, prefix+'_pos.npy'))
 		self.data_test_ner = np.load(os.path.join(self.data_path, prefix+'_ner.npy'))
 		self.data_test_char = np.load(os.path.join(self.data_path, prefix+'_char.npy'))
+		self.data_test_pos_map = np.load(os.path.join(self.data_path, prefix+'_pos_map.npy'))
 		self.test_file = json.load(open(os.path.join(self.data_path, prefix+'.json')))
-
 
 		self.test_len = self.data_test_word.shape[0]
 		assert(self.test_len==len(self.test_file))
@@ -187,6 +187,7 @@ class BioRelConfig(object):
 
 	def get_train_batch(self):
 		random.shuffle(self.train_order)
+
 		context_idxs = torch.LongTensor(self.batch_size, self.max_length).cuda()
 		context_pos = torch.LongTensor(self.batch_size, self.max_length).cuda()
 		h_mapping = torch.Tensor(self.batch_size, self.h_t_limit, self.max_length).cuda()
@@ -229,63 +230,37 @@ class BioRelConfig(object):
 				context_pos[i].copy_(torch.from_numpy(self.data_train_pos[index, :]))
 				context_char_idxs[i].copy_(torch.from_numpy(self.data_train_char[index, :]))
 				context_ner[i].copy_(torch.from_numpy(self.data_train_ner[index, :]))
-				
+
 				for j in range(self.max_length):
 					if self.data_train_word[index, j]==0:
 						break
 					pos_idx[i, j] = j+1
 
 				ins = self.train_file[index]
-				labels = ins['interactions']
+				labels = ins['labels']
 				idx2label = defaultdict(list)
 
 				for label in labels:
-					h = label['participants'][0]
-					t = label['participants'][1]
-					idx2label[(h, t)].append(self.rel2id[str(label['label'])])
-					# idx2label[(label['h'], label['t'])].append(label['r'])
-
-				# Convert the entity label sequence from character level to word level
-
-				text = ins['text']
-				inv_span = np.zeros(len(text), dtype=np.int)
-				text = word_tokenize(text.replace(' ', SPC))
-				start = 0
-				i_w = 0
-				for word in text:
-					if word == SPC:
-						start += len(word)
-						continue
-					inv_span[start:start+len(word)] = i_w
-					start += len(word)
-					i_w += 1
+					idx2label[(label['h'], label['t'])].append(label['r'])
 
 				train_tripe = list(idx2label.keys())
 				for j, (h_idx, t_idx) in enumerate(train_tripe):
-					hlist_by_names = ins['entities'][h_idx]['names'].values()
-					tlist_by_names = ins['entities'][t_idx]['names'].values()
-					# hlist = ins['vertexSet'][h_idx]
-					# tlist = ins['vertexSet'][t_idx]
-					hlist = [h_mention for h_info in hlist_by_names for h_mention in h_info['mentions'] if h_info['is_mentioned']]
-					tlist = [t_mention for t_info in tlist_by_names for t_mention in t_info['mentions'] if t_info['is_mentioned']]
-						
+					hlist = ins['vertexSet'][h_idx]
+					tlist = ins['vertexSet'][t_idx]
+
 					for h in hlist:
-						h[0] = inv_span[int(h[0])] # Convert h[0] and h[1] to be in number of words instead of characters
-						h[1] = inv_span[int(h[1]-1)]
-						if h[1] == h[0]:
-							h[1] += 1
-						h_mapping[i, j, h[0]:h[1]] = 1.0 / len(hlist) / (h[1] - h[0])
+						start = self.data_train_pos_map[index][h['pos'][0]]
+						end = self.data_train_pos_map[index][h['pos'][1]]
+						h_mapping[i, j, start:end] = 1.0 / len(hlist) / (end - start)
 
 					for t in tlist:
-						t[0] = inv_span[int(t[0])]
-						t[1] = inv_span[int(t[1]-1)]
-						if t[1] == t[0]:
-							t[1] += 1
-						t_mapping[i, j, t[0]:t[1]] = 1.0 / len(tlist) / (t[1] - t[0])
+						start = self.data_train_pos_map[index][t['pos'][0]]
+						end = self.data_train_pos_map[index][t['pos'][1]]
+						t_mapping[i, j, start:end] = 1.0 / len(tlist) / (end - start)
 
 					label = idx2label[(h_idx, t_idx)]
 
-					delta_dis = inv_span[int(hlist[0][0])] - inv_span[int(tlist[0][0])]
+					delta_dis = hlist[0]['pos'][0] - tlist[0]['pos'][0]
 					if delta_dis < 0:
 						ht_pair_pos[i, j] = -int(self.dis2idx[-delta_dis])
 					else:
@@ -300,37 +275,30 @@ class BioRelConfig(object):
 					relation_label[i, j] = label[rt]
 
 
-				L = len(ins['entities']) 
-				na_triple = [(h_idx, t_idx) for h_idx in range(L) for t_idx in range(L) if (not (h_idx, t_idx) in train_tripe and not (t_idx, h_idx) in train_tripe)]
-				# lower_bound = len(na_triple)
+
+				lower_bound = len(ins['na_triple'])
 				# random.shuffle(ins['na_triple'])
-				lower_bound = max(20, len(train_tripe))	     
-	
-				for j, (h_idx, t_idx) in enumerate(na_triple[:lower_bound], len(train_tripe)):
-					hlist_by_names = ins['entities'][h_idx]['names'].values()
-					tlist_by_names = ins['entities'][t_idx]['names'].values()
-					
-					hlist = [h_mention for h_info in hlist_by_names for h_mention in h_info['mentions'] if h_info['is_mentioned']]		       
-					tlist = [t_mention for t_info in tlist_by_names for t_mention in t_info['mentions'] if t_info['is_mentioned']]
-					
+				# lower_bound = max(20, len(train_tripe)*3)
+
+
+				for j, (h_idx, t_idx) in enumerate(ins['na_triple'][:lower_bound], len(train_tripe)):
+					hlist = ins['vertexSet'][h_idx]
+					tlist = ins['vertexSet'][t_idx]
+
 					for h in hlist:
-						h[0] = inv_span[int(h[0])]
-						h[1] = inv_span[int(h[1]-1)]
-						if h[0] == h[1]:
-							h[1] += 1
-						h_mapping[i, j, h[0]:h[1]] = 1.0 / len(hlist) / (h[1] - h[0])
+						start = self.data_train_pos_map[index][h['pos'][0]]
+						end = self.data_train_pos_map[index][h['pos'][1]] 
+						h_mapping[i, j, start:end] = 1.0 / len(hlist) / (end - start)
 
 					for t in tlist:
-						t[0] = inv_span[int(t[0])]
-						t[1] = inv_span[int(t[1]-1)]
-						if t[0] == t[1]:
-							t[1] += 1
-						t_mapping[i, j, t[0]:t[1]] = 1.0 / len(tlist) / (t[1] - t[0])
+						start = self.data_train_pos_map[index][t['pos'][0]]
+						end = self.data_train_pos_map[index][t['pos'][1]]
+						t_mapping[i, j, start:end] = 1.0 / len(tlist) / (end - start)
 
 					relation_multi_label[i, j, 0] = 1
 					relation_label[i, j] = 0
 					relation_mask[i, j] = 1
-					delta_dis = inv_span[int(hlist[0][0])] - inv_span[int(tlist[0][0])]
+					delta_dis = hlist[0]['pos'][0] - tlist[0]['pos'][0]
 					if delta_dis < 0:
 						ht_pair_pos[i, j] = -int(self.dis2idx[-delta_dis])
 					else:
@@ -340,10 +308,10 @@ class BioRelConfig(object):
 
 
 			input_lengths = (context_idxs[:cur_bsz] > 0).long().sum(dim=1)
+			# print('input_lengths: {}'.format(input_lengths)) # XXX
 			max_c_len = int(input_lengths.max())
 
-			
-			data_dict = {'context_idxs': context_idxs[:cur_bsz, :max_c_len].contiguous(),
+			yield {'context_idxs': context_idxs[:cur_bsz, :max_c_len].contiguous(),
 				   'context_pos': context_pos[:cur_bsz, :max_c_len].contiguous(),
 				   'h_mapping': h_mapping[:cur_bsz, :max_h_t_cnt, :max_c_len],
 				   't_mapping': t_mapping[:cur_bsz, :max_h_t_cnt, :max_c_len],
@@ -354,8 +322,8 @@ class BioRelConfig(object):
 				   'relation_mask': relation_mask[:cur_bsz, :max_h_t_cnt],
 				   'context_ner': context_ner[:cur_bsz, :max_c_len].contiguous(),
 				   'context_char_idxs': context_char_idxs[:cur_bsz, :max_c_len].contiguous(),
-				   'ht_pair_pos': ht_pair_pos[:cur_bsz, :max_h_t_cnt]}
-			yield data_dict
+				   'ht_pair_pos': ht_pair_pos[:cur_bsz, :max_h_t_cnt],
+				   }
 
 	def get_test_batch(self):
 		context_idxs = torch.LongTensor(self.test_batch_size, self.max_length).cuda()
@@ -368,8 +336,6 @@ class BioRelConfig(object):
 		ht_pair_pos = torch.LongTensor(self.test_batch_size, self.h_t_limit).cuda()
 
 		for b in range(self.test_batches):
-			# if b > 1: # XXX
-			#	break 
 			start_id = b * self.test_batch_size
 			cur_bsz = min(self.test_batch_size, self.test_len - start_id)
 			cur_batch = list(self.test_order[start_id : start_id + cur_bsz])
@@ -396,54 +362,37 @@ class BioRelConfig(object):
 				context_ner[i].copy_(torch.from_numpy(self.data_test_ner[index, :]))
 
 
+
 				idx2label = defaultdict(list)
 				ins = self.test_file[index]
-				for label in ins['interactions']:
-					h = label['participants'][0]
-					t = label['participants'][1]
-					idx2label[(h, t)].append(self.rel2id[str(label['label'])])
 
-				text = ins['text'].replace(' ', SPC)
-				inv_span = np.zeros(len(text), dtype=np.int)
-				text = word_tokenize(text)
+				for label in ins['labels']:
+					idx2label[(label['h'], label['t'])].append(label['r'])
 
-				start = 0
-				i_w = 0
-				for word in text:
-					if word == SPC:
-						start += len(word)
-						continue
-					inv_span[start:start+len(word)] = i_w
-					start += len(word)
-					i_w += 1
-				L = len(ins['entities'])
-				titles.append('') # XXX
+
+
+				L = len(ins['vertexSet'])
+				titles.append(ins['title'])
 
 				j = 0
 				for h_idx in range(L):
 					for t_idx in range(L):
 						if h_idx != t_idx:
-							hlist_by_names = ins['entities'][h_idx]['names'].values()
-							tlist_by_names = ins['entities'][t_idx]['names'].values()
-							hlist = [h_mention for h_info in hlist_by_names for h_mention in h_info['mentions'] if h_info['is_mentioned']]
-							tlist = [t_mention for t_info in tlist_by_names for t_mention in t_info['mentions'] if t_info['is_mentioned']]
+							hlist = ins['vertexSet'][h_idx]
+							tlist = ins['vertexSet'][t_idx]
 
 							for h in hlist:
-								h[0] = inv_span[int(h[0])]
-								h[1] = inv_span[int(h[1]-1)]
-								if h[1] == h[0]:
-									h[1] += 1
-								h_mapping[i, j, h[0]:h[1]] = 1.0 / len(hlist) / (h[1] - h[0])
+								start = self.data_test_pos_map[index][h['pos'][0]]  
+								end = self.data_test_pos_map[index][h['pos'][1]]
+								h_mapping[i, j, start:end] = 1.0 / len(hlist) / (end - start)
 							for t in tlist:
-								t[0] = inv_span[int(t[0])]
-								t[1] = inv_span[int(t[1]-1)]
-								if t[1] == t[0]:
-									t[1] += 1
-								t_mapping[i, j, t[0]:t[1]] = 1.0 / len(tlist) / (t[1] - t[0])
+								start = self.data_test_pos_map[index][t['pos'][0]]
+								end = self.data_test_pos_map[index][t['pos'][1]]
+								t_mapping[i, j, start:end] = 1.0 / len(tlist) / (end - start)
 
 							relation_mask[i, j] = 1
 
-							delta_dis = inv_span[int(hlist[0][0])] - inv_span[int(tlist[0][0])]
+							delta_dis = hlist[0]['pos'][0] - tlist[0]['pos'][0]
 							if delta_dis < 0:
 								ht_pair_pos[i, j] = -int(self.dis2idx[-delta_dis])
 							else:
@@ -453,14 +402,8 @@ class BioRelConfig(object):
 
 				max_h_t_cnt = max(max_h_t_cnt, j)
 				label_set = {}
-				for label in ins['interactions']:
-					h = label['participants'][0]
-					t = label['participants'][1]
-					if len(self.train_prefix.split('_')) == 1:
-						intrain_key = 'in'+self.train_prefix
-					else:
-						intrain_key = 'in'+'_'.join(self.train_prefix.split('_')[:-1])
-					label_set[(h, t, self.rel2id[str(label['label'])])] = False # intrain_key
+				for label in ins['labels']:
+					label_set[(label['h'], label['t'], label['r'])] = label['intrain']# XXX+'_'.join(self.train_prefix.split('_')[:-1])]
 
 				labels.append(label_set)
 
@@ -497,7 +440,7 @@ class BioRelConfig(object):
 		ori_model.cuda()
 		model = nn.DataParallel(ori_model)
 
-		optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=1e-5)
+		optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()))
 		# nll_average = nn.CrossEntropyLoss(size_average=True, ignore_index=IGNORE_INDEX)
 		BCE = nn.BCEWithLogitsLoss(reduction='none')
 
@@ -528,17 +471,16 @@ class BioRelConfig(object):
 		plt.title('Precision-Recall')
 		plt.grid(True)
 
-		outputs = []
-		labels = []
 		for epoch in range(self.max_epoch):
 
 			self.acc_NA.clear()
 			self.acc_not_NA.clear()
 			self.acc_total.clear()
-
-			for ex, data in enumerate(self.get_train_batch()):
+			ex = 0
+			for data in self.get_train_batch():
 				# if ex > 1: # XXX
-				#	break
+				# 	break
+				ex += 1
 				context_idxs = data['context_idxs']
 				context_pos = data['context_pos']
 				h_mapping = data['h_mapping']
@@ -550,23 +492,25 @@ class BioRelConfig(object):
 				context_ner = data['context_ner']
 				context_char_idxs = data['context_char_idxs']
 				ht_pair_pos = data['ht_pair_pos']
+
+
 				dis_h_2_t = ht_pair_pos+10
 				dis_t_2_h = -ht_pair_pos+10
+
 
 				predict_re = model(context_idxs, context_pos, context_ner, context_char_idxs, input_lengths, h_mapping, t_mapping, relation_mask, dis_h_2_t, dis_t_2_h)
 				loss = torch.sum(BCE(predict_re, relation_multi_label)*relation_mask.unsqueeze(2)) /  (self.relation_num * torch.sum(relation_mask))
 
+
 				output = torch.argmax(predict_re, dim=-1)
 				output = output.data.cpu().numpy()
+
 				optimizer.zero_grad()
 				loss.backward()
 				optimizer.step()
 
 				relation_label = relation_label.data.cpu().numpy()
-				nrels = (relation_label >= 0).sum(axis=-1)
-				# print('relation_label.shape, nrels: {}'.format(relation_label.shape, nrels)) # XXX
-				labels.append([rel[:nrel] for rel, nrel in zip(relation_label.tolist(), nrels)])
-				outputs.append([out[:nrel] for out, nrel in zip(output.tolist(), nrels)])
+
 				for i in range(output.shape[0]):
 					for j in range(output.shape[1]):
 						label = relation_label[i][j]
@@ -601,14 +545,14 @@ class BioRelConfig(object):
 				logging('| epoch {:3d} | time: {:5.2f}s'.format(epoch, time.time() - eval_start_time))
 				logging('-' * 89)
 
-				json.dump(outputs, open('{}/{}_epoch{}_train_predict_labels.json'.format(self.fig_result_dir, model_name, epoch), 'w'), indent=4, sort_keys=True)
-				json.dump(labels, open('{}/{}_epoch{}_train_gold_labels.json'.format(self.fig_result_dir, model_name, epoch), 'w'), indent=4, sort_keys=True)
+
 				if f1 > best_f1:
 					best_f1 = f1
 					best_auc = auc
 					best_epoch = epoch
 					path = os.path.join(self.checkpoint_dir, model_name)
 					torch.save(ori_model.state_dict(), path)
+
 					plt.plot(pr_x, pr_y, lw=2, label=str(epoch))
 					plt.legend(loc="upper right")
 					plt.savefig(os.path.join("fig_result", model_name))
@@ -625,7 +569,6 @@ class BioRelConfig(object):
 		total_recall_ignore = 0
 
 		test_result = []
-		test_result_onehot = []
 		total_recall = 0
 		top1_acc = have_label = 0
 
@@ -635,8 +578,13 @@ class BioRelConfig(object):
 			if log_:
 				with open(os.path.join(os.path.join("log", model_name)), 'a+') as f_log:
 					f_log.write(s + '\n')
- 
+
+
+		ex = 0
 		for data in self.get_test_batch():
+			# if ex > 1: # XXX
+			# 	break
+			ex += 1
 			with torch.no_grad():
 				context_idxs = data['context_idxs']
 				context_pos = data['context_pos']
@@ -644,7 +592,7 @@ class BioRelConfig(object):
 				t_mapping = data['t_mapping']
 				labels = data['labels']
 				L_vertex = data['L_vertex']
-				input_lengths =	 data['input_lengths']
+				input_lengths =  data['input_lengths']
 				context_ner = data['context_ner']
 				context_char_idxs = data['context_char_idxs']
 				relation_mask = data['relation_mask']
@@ -658,9 +606,11 @@ class BioRelConfig(object):
 
 				predict_re = model(context_idxs, context_pos, context_ner, context_char_idxs, input_lengths,
 								   h_mapping, t_mapping, relation_mask, dis_h_2_t, dis_t_2_h)
+
 				predict_re = torch.sigmoid(predict_re)
 
 			predict_re = predict_re.data.cpu().numpy()
+
 			for i in range(len(labels)):
 				label = labels[i]
 				index = indexes[i]
@@ -677,8 +627,7 @@ class BioRelConfig(object):
 				for h_idx in range(L):
 					for t_idx in range(L):
 						if h_idx != t_idx:
-							r = int(np.argmax(predict_re[i, j]))
-							test_result_onehot.append(((h_idx, t_idx, r) in label, float(predict_re[i,j,r]), False, titles[i], self.id2rel[r], index, h_idx, t_idx, r))
+							r = np.argmax(predict_re[i, j])
 							if (h_idx, t_idx, r) in label:
 								top1_acc += 1
 
@@ -686,6 +635,7 @@ class BioRelConfig(object):
 
 							for r in range(1, self.relation_num):
 								intrain = False
+
 								if (h_idx, t_idx, r) in label:
 									flag = True
 									if label[(h_idx, t_idx, r)]==True:
@@ -693,9 +643,10 @@ class BioRelConfig(object):
 
 
 								# if not intrain:
-								#	test_result_ignore.append( ((h_idx, t_idx, r) in label, float(predict_re[i,j,r]),  titles[i], self.id2rel[r], index, h_idx, t_idx, r) )
+								# 	test_result_ignore.append( ((h_idx, t_idx, r) in label, float(predict_re[i,j,r]),  titles[i], self.id2rel[r], index, h_idx, t_idx, r) )
 
 								test_result.append( ((h_idx, t_idx, r) in label, float(predict_re[i,j,r]), intrain,  titles[i], self.id2rel[r], index, h_idx, t_idx, r) )
+
 							if flag:
 								have_label += 1
 
@@ -707,7 +658,7 @@ class BioRelConfig(object):
 			if data_idx % self.period == 0:
 				print('| step {:3d} | time: {:5.2f}'.format(data_idx // self.period, (time.time() - eval_start_time)))
 				eval_start_time = time.time()
-		json.dump(test_result, open(os.path.join(self.fig_result_dir, model_name+'_test_result.json'), 'w'), indent=4, sort_keys=True)
+
 		# test_result_ignore.sort(key=lambda x: x[1], reverse=True)
 		test_result.sort(key = lambda x: x[1], reverse=True)
 
@@ -755,13 +706,8 @@ class BioRelConfig(object):
 		if output:
 			# output = [x[-4:] for x in test_result[:w+1]]
 			output = [{'index': x[-4], 'h_idx': x[-3], 't_idx': x[-2], 'r_idx': x[-1], 'r': x[-5], 'title': x[-6]} for x in test_result[:w+1]]
-			output_onehot = [{'index': x[-4], 'h_idx': x[-3], 't_idx': x[-2], 'r_idx': x[-1], 'r': x[-5], 'title': x[-6]} for x in test_result_onehot]
-			pred_file = os.path.join(self.fig_result_dir, '_'.join([self.test_prefix, model_name, 'index']))
-			json.dump(output, open(pred_file+'.json', "w"), indent=4, sort_keys=True)
-			json.dump(output_onehot, open(pred_file+'_onehot.json', 'w'), indent=4, sort_keys=True)
-			self.convert_result(pred_file+'.json', pred_file+'_converted.json')
-			self.convert_result(pred_file+'_onehot.json', pred_file+'_onehot_converted.json')
-
+			json.dump(output, open(self.test_prefix + "_index.json", "w"))
+			self.convert_result(self.test_prefix + '_index.json', self.test_prefix + '_index_converted.json')
 		# plt.plot(pr_x, pr_y, lw=2, label=model_name)
 		# plt.legend(loc="upper right")
 		if not os.path.exists(self.fig_result_dir):
@@ -797,33 +743,20 @@ class BioRelConfig(object):
 		return f1, auc, pr_x, pr_y
 
 	def convert_result(self, in_file, out_file):
-		print(out_file)
 		test_info = json.load(open(os.path.join(self.data_path, self.test_prefix+'.json')))
 		predict_info = json.load(open(in_file, 'r'))
 		converted_pred_info = []
 		for item in test_info:
-			item['interactions'] = []
+			item['labels'] = []
+			item['na_triple'] = []
 			converted_pred_info.append(item)
 
 		for item in predict_info:
 			idx = item['index']
-			if int(item['r']) == 0:
-				continue
-			found = 0
-			for prev_rel in converted_pred_info[idx]['interactions']:
-					prev_h, prev_t = prev_rel['participants'][0], prev_rel['participants'][1]
-					if (prev_h == item['h_idx'] and prev_t == item['t_idx']) or (prev_h == item['t_idx'] and prev_t == item['h_idx']):
-						found = 1
-						break
-
-			if found:
-				continue
-			rel = {'participants': [item['h_idx'], item['t_idx']],
-						  'type': 'bind',
-						 'implicit': False,
-						 'label': int(item['r'])
-						}
-			converted_pred_info[idx]['interactions'].append(rel)
+			rel = {'r': item['r'],
+						 'h': item['h_idx'],
+						 't': item['t_idx']}
+			converted_pred_info[idx]['labels'].append(rel)
 		json.dump(converted_pred_info, open(out_file, 'w'), indent=4, sort_keys=True)
 
 	def testall(self, model_pattern, model_name, input_theta):#, ignore_input_theta):

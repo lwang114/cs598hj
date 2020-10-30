@@ -7,15 +7,15 @@ from torch import nn
 from transformers import BertModel
 import logging
 
-class BERT(nn.Module): # TODO
+class BERT(nn.Module):
 	def __init__(self, config):
 		super(BERT, self).__init__()
 		self.config = config
 		self.use_entity_type = True
-		self.use_coreference = False # True
-		self.use_distance = False # True
+		self.use_coreference = True
+		self.use_distance = True
 	
-		hidden_size = 768 # XXX hidden dimension for Bert
+		hidden_size = 128 # XXX hidden dimension for tiny Bert
 		if self.use_entity_type:
 			hidden_size += config.entity_type_size
 			self.ner_embed = nn.Embedding(config.entity_type_size, config.entity_type_size, padding_idx=0) # Assume one label per entity
@@ -24,7 +24,7 @@ class BERT(nn.Module): # TODO
 			hidden_size += config.coref_size
 			self.entity_embed = nn.Embedding(config.max_length, config.coref_size, padding_idx=0)
 
-		self.bert = BertModel.from_pretrained('bert-base-uncased', output_hidden_states = True)
+		self.bert = BertModel.from_pretrained('prajjwal1/bert-tiny', output_hidden_states = True)
 		self.linear_re = nn.Linear(hidden_size, hidden_size)
 
 		if self.use_distance:

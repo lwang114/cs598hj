@@ -12,12 +12,12 @@ SPC = '#'
 PUNCT = [' ', ',', '.', '(', ')']
 class BioRelDataset(Dataset):
   def __init__(self, json_file,
-   		     config={}):
+                     config={}):
     word2idx_file = config.get('word2idx_file', 'word2id.json')
     ner2idx_file = config.get('ner2idx_file', 'ner2id.json') 
     char2idx_file = config.get('char2idx_file', 'char2id.json')
-    rel2idx_file = config.get('rel2idx_file', 'rel2id.json')
     word_vec_file = config.get('word_vec_file', 'vec.npy')
+    rel2id_file = config.get('rel2id_file', 'rel2id.json')
     self.split = config.get('split', 'train')
     self.max_nchars_word = config.get('max_nchars_per_word', 16)
     self.max_nchars_sent = config.get('max_nchars_per_sent', 512)
@@ -25,52 +25,62 @@ class BioRelDataset(Dataset):
     self.data_dir = config.get('data_dir', '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw3/')
     self.embed_path = config.get('embed_path', '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw1/data/cc.en.300.vec')    
 
-    self.word2idx = {UNK:0}
-    self.ner2idx = {NULL:0}
-    self.char2idx = {NULL:0} 
-    self.rel2idx = {NA:0}
-    
     if not os.path.isdir(os.path.join(self.data_dir, 'prepro_data')):
       os.mkdir(os.path.join(self.data_dir, 'prepro_data'))
     self.out_path = os.path.join(self.data_dir, 'prepro_data')
     self.load_data(os.path.join(self.data_dir, json_file))
     # if not os.path.isfile(os.path.join(self.data_dir, 'prepro_data', word_vec_file)):
-    # 	self.load_word_embed(self.embed_path, dimension=300, out_file=word_vec_file)		
+    #   self.load_word_embed(self.embed_path, dimension=300, out_file=word_vec_file)            
 
   def load_data(self, data_file_name,
                 char_limit = 16,
                 max_length = 256):
     """
       Args:
-	data_file_name: name of the data file in json format containing the annotations of the sentences	   
-	  {
-	    'text': (sent str),
-	    'entities': [
-	       {'names': 
-		(name_1): {
-		  'is_mentioned': (bool),
-		  'mentions': [[start_1, end_1], ..., [start_M, end_M]]
-		  },
-		(name 2): {...},
-		...,
-		(name N): {...}]},
-	       {(another entity)}
-	     ]	
-	    }
+        data_file_name: name of the data file in json format containing the annotations of the sentences           
+          {
+            'text': (sent str),
+            'entities': [
+               {'names': 
+                (name_1): {
+                  'is_mentioned': (bool),
+                  'mentions': [[start_1, end_1], ..., [start_M, end_M]]
+                  },
+                (name 2): {...},
+                ...,
+                (name N): {...}]},
+               {(another entity)}
+             ]  
+            }
       Returns:
-	char_idxs: N x L x Kc Long Tensor
-	       [[[char2idx[c] for c in word_i^n] for i in range(L)] for n in range(N)]
-	ner_idxs: N x L Long Tensor
-	      [[entity_i^n for i in range(L)] for n in range(N)]
-	word_idxs: N x L Long Tensor
-	       [[word_i^n for i in range(L)] for n in range(N)]
-	pos_idxs: N x L Long Tensor
-	     [[entity_order_i^n for i in range(L)] for n in range(N)]
-	word_lens: N-dim Long Tensor storing the length of each word in characters
-	sent_lens: N x L Long Tensor storing the length of each sent in words
+        char_idxs: N x L x Kc Long Tensor
+               [[[char2idx[c] for c in word_i^n] for i in range(L)] for n in range(N)]
+        ner_idxs: N x L Long Tensor
+              [[entity_i^n for i in range(L)] for n in range(N)]
+        word_idxs: N x L Long Tensor
+               [[word_i^n for i in range(L)] for n in range(N)]
+        pos_idxs: N x L Long Tensor
+             [[entity_order_i^n for i in range(L)] for n in range(N)]
+        word_lens: N-dim Long Tensor storing the length of each word in characters
+        sent_lens: N x L Long Tensor storing the length of each sent in words
     """
     ori_data = json.load(open(data_file_name))
+    if not os.path.exists(self.rel2id_file):
+      rel2id = {}
+      for item in ori_data:
+        for rel in item['iteractions']:
+          if not str(rel['label']) in rel2id:
+            rel2id[str(rel['label'])] = len(rel2id)
+      json.dump(rel2id, open(self.rel2id_file, 'w'), indent=4, sort_keys=True)
 
+    if not os.path.exists(self.ner2id_file):
+      ner2id = {}
+      for item in ori_data:
+        for entity in item['entities']:
+          if not entity['label'] in ner2id:
+            ner2id[entity['label']] = len(ner2id)
+      json.dump(ner2id, open(self.ner2id_file, 'w'), indent=4, sort_keys=True)
+            
     char2id = json.load(open(os.path.join(self.out_path, 'char2id.json')))
     word2id = json.load(open(os.path.join(self.out_path, 'word2id.json')))
     ner2id = json.load(open(os.path.join(self.out_path, 'ner2id.json')))
@@ -174,4 +184,4 @@ class BioRelDataset(Dataset):
 if __name__ == '__main__':
   train_set = BioRelDataset('1.0alpha7.train.json', {'split': 'train'})
   dev_set = BioRelDataset('1.0alpha7.dev.json', {'split': 'dev'})
-	
+        
