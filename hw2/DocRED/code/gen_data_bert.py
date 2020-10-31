@@ -165,8 +165,8 @@ def init(data_file_name, rel2id, max_length = 512, is_training = True, suffix=''
 			end = min(start+len(sent), max_length)
 			cur_pos_map = start+np.arange(len(sent))+sent_id+1 
 			pos_map[start:end] = cur_pos_map[:end-start]
-			words += sent
-			words += SEP
+			words += [w.lower() for w in sent]
+			words += [SEP]
 		sen_pos_map[i] = deepcopy(pos_map)
 		
 		indexed_tokens = tokenizer.convert_tokens_to_ids(words)[:max_length]
@@ -192,8 +192,6 @@ def init(data_file_name, rel2id, max_length = 512, is_training = True, suffix=''
 	np.save(os.path.join(out_path, name_prefix + suffix + '_char.npy'), sen_char)
 	np.save(os.path.join(out_path, name_prefix + suffix + '_pos_map.npy'), sen_pos_map)
 	print("Finish saving")
-
-
 
 # init(train_distant_file_name, rel2id, max_length = 512, is_training = True, suffix='_bert')
 init(train_annotated_file_name, rel2id, max_length = 512, is_training = False, suffix='_train_bert')
