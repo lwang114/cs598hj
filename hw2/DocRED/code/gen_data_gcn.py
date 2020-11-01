@@ -187,6 +187,7 @@ def init(data_file_name, rel2id, max_length = 512, is_training = True, suffix=''
 	sen_ner = np.zeros((sen_tot, max_length), dtype = np.int64)
 	sen_depheads = np.zeros((sen_tot, max_length), dtype = np.int64)
 	sen_char = np.zeros((sen_tot, max_length, char_limit), dtype = np.int64)
+	dep_parse_dicts = []
 
 	for i in range(len(ori_data)): 
 		print('Instance {}'.format(i))
@@ -206,8 +207,10 @@ def init(data_file_name, rel2id, max_length = 512, is_training = True, suffix=''
 		#	start += len(sent)
 		#	continue
 		deps, heads = _parse_sent_batch(sents)
+		dep_parse_dicts.append({'sents': sents, 'heads': heads, 'labels': deps})
+
 		start = 0
-		for sent_id, (sent, head) in enumerate(zip(sents, heads)):
+		for sent, head, dep in zip(sents, heads, deps):
 			head = np.asarray(head)
 			sen_depheads[i][start:start+len(sent)] = deepcopy(start+head[:len(sent)])
 			start += len(sent)
@@ -237,6 +240,7 @@ def init(data_file_name, rel2id, max_length = 512, is_training = True, suffix=''
 				sen_ner[i][v['pos'][0]:v['pos'][1]] = ner2id[v['type']]
 
 	print("Finishing processing")
+	json.dump(dep_parse_dicts, open(os.path.join(out_path, name_prefix + suffix + '_dep_parse_dicts.json'), 'w'), indent=4, sort_keys=True)
 	np.save(os.path.join(out_path, name_prefix + suffix + '_word.npy'), sen_word)
 	np.save(os.path.join(out_path, name_prefix + suffix + '_pos.npy'), sen_pos)
 	np.save(os.path.join(out_path, name_prefix + suffix + '_ner.npy'), sen_ner)
