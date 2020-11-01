@@ -20,6 +20,7 @@ import torch.nn.functional as F
 
 
 IGNORE_INDEX = -100
+NULL = 0
 is_transformer = False
 
 class Accuracy(object):
@@ -140,8 +141,31 @@ class GCNConfig(object):
 		self.data_train_pos = np.load(os.path.join(self.data_path, prefix+'_pos.npy'))
 		self.data_train_ner = np.load(os.path.join(self.data_path, prefix+'_ner.npy'))
 		self.data_train_char = np.load(os.path.join(self.data_path, prefix+'_char.npy'))
-		self.data_train_dephead = np.load(os.path.join(self.data_path, prefix+'_depheads.npy'))
 		self.train_file = json.load(open(os.path.join(self.data_path, prefix+'.json')))
+		self.data_train_parse_dicts = json.load(open(os.path.join(self.data_path, prefix+'_dep_parse_dicts.json')))
+		self.data_train_dephead = np.zeros((self.data_train_word.shape[0], self.max_length))
+		self.data_train_deprel = np.zeros((self.data_train_word.shape[0], self.max_length))
+
+		if not os.path.exists(os.path.join(self.data_path, prefix+'_dep_rel2id.json')):
+			self.dep_rel2id = {NULL:0}
+			for parse_dict in self.data_train_parse_dicts:					
+				for drs in parse_dict['labels']:
+					for dr in drs:
+						if not dr in self.dep_rel2id:
+							self.dep_rel2id[dr] = len(self.dep_rel2id)
+			json.dump(self.dep_rel2id, open(os.path.join(self.data_path, prefix+'_dep_rel2id.json'), 'w'), indent=4, sort_keys=True)
+		else:
+			self.dep_rel2id = json.load(open(os.path.join(self.data_path, prefix+'_dep_rel2id.json')))
+
+		for i, parse_dict in enumerate(self.data_train_parse_dicts):
+			start = 0 
+			for i, (h_idxs, drs, sent) in enumerate(zip(parse_dict['heads'], parse_dict['labels'], parse_dict['sents'])):
+				h_idxs = np.asarray(h_idxs) 
+				r_idxs = np.asarray([self.dep_rel2id[r] for r in drs])
+				self.data_train_dephead[i][start:start+len(sent)] = deepcopy(start+h_idxs)
+				self.data_train_deprel[i][start:start+len(sent)] = deepcopy(r_idxs)
+				start += len(sent)
+
 		print ('train', prefix, len(self.data_train_word))
 		print("Finish reading")
 
@@ -165,10 +189,13 @@ class GCNConfig(object):
 		self.data_test_word = np.load(os.path.join(self.data_path, prefix+'_word.npy'))
 		self.data_test_pos = np.load(os.path.join(self.data_path, prefix+'_pos.npy'))
 		self.data_test_ner = np.load(os.path.join(self.data_path, prefix+'_ner.npy'))
-		self.data_test_dephead = np.load(os.path.join(self.data_path, prefix+'_depheads.npy'))
+		self.data_test_parse_dicts = json.load(open(os.path.join(self.data_path, prefix+'_dep_parse_dicts.json')))
+
 		self.data_test_char = np.load(os.path.join(self.data_path, prefix+'_char.npy'))
 		self.test_file = json.load(open(os.path.join(self.data_path, prefix+'.json')))
 		print (prefix, len(self.data_test_word))
+
+		self.data_test_deprel = [np.asarray([self.dep_rel2id[rel] for rel in parse_dict['labels']]) for parse_dict in self.data_test_parse_dicts]
 
 		self.test_len = self.data_test_word.shape[0]
 		assert(self.test_len==len(self.test_file))
@@ -231,9 +258,9 @@ class GCNConfig(object):
 				context_char_idxs[i].copy_(torch.from_numpy(self.data_train_char[index, :]))
 				context_ner[i].copy_(torch.from_numpy(self.data_train_ner[index, :]))
 				adj = np.zeros((self.max_length, self.max_length))
-				for t_idx, h_idx in enumerate(self.data_train_dephead[index]):
+				for t_idx, (h_idx, r_idx) in enumerate(zip(self.data_train_dephead[index], self.data_train_deprel[index]):
 					if t_idx != h_idx:
-						adj[min(h_idx, self.max_length-1), min(t_idx, self.max_length-1)] = 1. 
+						adj[min(h_idx, self.max_length-1), min(t_idx, self.max_length-1)] = r_idx 
 				context_adj[i].copy_(torch.from_numpy(adj))
 				
 				for j in range(self.max_length):
@@ -362,9 +389,9 @@ class GCNConfig(object):
 				context_char_idxs[i].copy_(torch.from_numpy(self.data_test_char[index, :]))
 				context_ner[i].copy_(torch.from_numpy(self.data_test_ner[index, :]))
 				adj = np.zeros((self.max_length, self.max_length))
-				for t_idx, h_idx in enumerate(self.data_test_dephead[index, :]):
+				for t_idx, (h_idx, r_idx) in enumerate(zip(self.data_test_dephead[index, :], self.data_test_deprel[index, :])):
 					if t_idx != h_idx:
-						adj[min(h_idx, self.max_length-1), min(t_idx, self.max_length-1)] = 1.  
+						adj[min(h_idx, self.max_length-1), min(t_idx, self.max_length-1)] = r_idx 
 				context_adj[i].copy_(torch.from_numpy(adj))
 
 
