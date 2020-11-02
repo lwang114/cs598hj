@@ -15,7 +15,9 @@ import argparse
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model_name', type = str, default = 'BiLSTM', help = 'name of the model')
+parser.add_argument('--model_name', type = str, 
+										choices={'BiLSTM', 'GlobalBiLSTM', 'BERT', 'CNN3', 'LSTM', 'ContextAware'}, 
+										default = 'BiLSTM', help = 'name of the model')
 parser.add_argument('--save_name', type = str)
 
 parser.add_argument('--train_prefix', type = str, default = 'dev_train')
@@ -27,13 +29,16 @@ model = {
 	'LSTM': models.LSTM,
 	'BiLSTM': models.BiLSTM,
 	'ContextAware': models.ContextAware,
-	'BERT': models.BERT
+	'BERT': models.BERT,
+	'GlobalBiLSTM': models.BiLSTM
 }
 
 
 if args.model_name == 'BERT':
 	con = config.BertConfig(args)
 	con.set_batch_size(6)
+elif args.model_name == 'GlobalBiLSTM':
+	con = config.GlobalConfig(args)
 else:
 	con = config.Config(args)
 con.set_max_epoch(200)	
