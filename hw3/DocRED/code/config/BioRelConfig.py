@@ -45,7 +45,7 @@ class BioRelConfig(object):
 		self.acc_NA = Accuracy()
 		self.acc_not_NA = Accuracy()
 		self.acc_total = Accuracy()
-		self.data_path = '/ws/ifp-53_2/hasegawa/lwang114/fall2020/cs598hj/hw3/prepro_data'
+		self.data_path = './prepro_data'
 		self.use_bag = False
 		self.use_gpu = True
 		self.is_training = True
@@ -73,7 +73,7 @@ class BioRelConfig(object):
 
 		self.period = 50
 
-		self.batch_size = 16 # 40
+		self.batch_size = 40
 		self.h_t_limit = 1800
 
 		self.test_batch_size = self.batch_size
@@ -245,21 +245,6 @@ class BioRelConfig(object):
 					idx2label[(h, t)].append(self.rel2id[str(label['label'])])
 					# idx2label[(label['h'], label['t'])].append(label['r'])
 
-				# Convert the entity label sequence from character level to word level
-
-				text = ins['text']
-				inv_span = np.zeros(len(text), dtype=np.int)
-				text = word_tokenize(text.replace(' ', SPC))
-				start = 0
-				i_w = 0
-				for word in text:
-					if word == SPC:
-						start += len(word)
-						continue
-					inv_span[start:start+len(word)] = i_w
-					start += len(word)
-					i_w += 1
-
 				train_tripe = list(idx2label.keys())
 				for j, (h_idx, t_idx) in enumerate(train_tripe):
 					hlist_by_names = ins['entities'][h_idx]['names'].values()
@@ -270,22 +255,14 @@ class BioRelConfig(object):
 					tlist = [t_mention for t_info in tlist_by_names for t_mention in t_info['mentions'] if t_info['is_mentioned']]
 						
 					for h in hlist:
-						h[0] = inv_span[int(h[0])] # Convert h[0] and h[1] to be in number of words instead of characters
-						h[1] = inv_span[int(h[1]-1)]
-						if h[1] == h[0]:
-							h[1] += 1
 						h_mapping[i, j, h[0]:h[1]] = 1.0 / len(hlist) / (h[1] - h[0])
 
 					for t in tlist:
-						t[0] = inv_span[int(t[0])]
-						t[1] = inv_span[int(t[1]-1)]
-						if t[1] == t[0]:
-							t[1] += 1
 						t_mapping[i, j, t[0]:t[1]] = 1.0 / len(tlist) / (t[1] - t[0])
 
 					label = idx2label[(h_idx, t_idx)]
 
-					delta_dis = inv_span[int(hlist[0][0])] - inv_span[int(tlist[0][0])]
+					delta_dis = hlist[0][0] - tlist[0][0]
 					if delta_dis < 0:
 						ht_pair_pos[i, j] = -int(self.dis2idx[-delta_dis])
 					else:
@@ -302,9 +279,9 @@ class BioRelConfig(object):
 
 				L = len(ins['entities']) 
 				na_triple = [(h_idx, t_idx) for h_idx in range(L) for t_idx in range(L) if (not (h_idx, t_idx) in train_tripe and not (t_idx, h_idx) in train_tripe)]
-				# lower_bound = len(na_triple)
+				lower_bound = 3 # len(na_triple)
 				# random.shuffle(ins['na_triple'])
-				lower_bound = max(20, len(train_tripe))	     
+				# lower_bound = max(20, len(train_tripe))	     
 	
 				for j, (h_idx, t_idx) in enumerate(na_triple[:lower_bound], len(train_tripe)):
 					hlist_by_names = ins['entities'][h_idx]['names'].values()
@@ -314,23 +291,15 @@ class BioRelConfig(object):
 					tlist = [t_mention for t_info in tlist_by_names for t_mention in t_info['mentions'] if t_info['is_mentioned']]
 					
 					for h in hlist:
-						h[0] = inv_span[int(h[0])]
-						h[1] = inv_span[int(h[1]-1)]
-						if h[0] == h[1]:
-							h[1] += 1
 						h_mapping[i, j, h[0]:h[1]] = 1.0 / len(hlist) / (h[1] - h[0])
 
 					for t in tlist:
-						t[0] = inv_span[int(t[0])]
-						t[1] = inv_span[int(t[1]-1)]
-						if t[0] == t[1]:
-							t[1] += 1
 						t_mapping[i, j, t[0]:t[1]] = 1.0 / len(tlist) / (t[1] - t[0])
 
 					relation_multi_label[i, j, 0] = 1
 					relation_label[i, j] = 0
 					relation_mask[i, j] = 1
-					delta_dis = inv_span[int(hlist[0][0])] - inv_span[int(tlist[0][0])]
+					delta_dis = hlist[0][0] - tlist[0][0]
 					if delta_dis < 0:
 						ht_pair_pos[i, j] = -int(self.dis2idx[-delta_dis])
 					else:
@@ -368,8 +337,6 @@ class BioRelConfig(object):
 		ht_pair_pos = torch.LongTensor(self.test_batch_size, self.h_t_limit).cuda()
 
 		for b in range(self.test_batches):
-			# if b > 1: # XXX
-			#	break 
 			start_id = b * self.test_batch_size
 			cur_bsz = min(self.test_batch_size, self.test_len - start_id)
 			cur_batch = list(self.test_order[start_id : start_id + cur_bsz])
@@ -403,19 +370,6 @@ class BioRelConfig(object):
 					t = label['participants'][1]
 					idx2label[(h, t)].append(self.rel2id[str(label['label'])])
 
-				text = ins['text'].replace(' ', SPC)
-				inv_span = np.zeros(len(text), dtype=np.int)
-				text = word_tokenize(text)
-
-				start = 0
-				i_w = 0
-				for word in text:
-					if word == SPC:
-						start += len(word)
-						continue
-					inv_span[start:start+len(word)] = i_w
-					start += len(word)
-					i_w += 1
 				L = len(ins['entities'])
 				titles.append('') # XXX
 
@@ -429,21 +383,13 @@ class BioRelConfig(object):
 							tlist = [t_mention for t_info in tlist_by_names for t_mention in t_info['mentions'] if t_info['is_mentioned']]
 
 							for h in hlist:
-								h[0] = inv_span[int(h[0])]
-								h[1] = inv_span[int(h[1]-1)]
-								if h[1] == h[0]:
-									h[1] += 1
 								h_mapping[i, j, h[0]:h[1]] = 1.0 / len(hlist) / (h[1] - h[0])
 							for t in tlist:
-								t[0] = inv_span[int(t[0])]
-								t[1] = inv_span[int(t[1]-1)]
-								if t[1] == t[0]:
-									t[1] += 1
 								t_mapping[i, j, t[0]:t[1]] = 1.0 / len(tlist) / (t[1] - t[0])
 
 							relation_mask[i, j] = 1
 
-							delta_dis = inv_span[int(hlist[0][0])] - inv_span[int(tlist[0][0])]
+							delta_dis = hlist[0][0] - tlist[0][0]
 							if delta_dis < 0:
 								ht_pair_pos[i, j] = -int(self.dis2idx[-delta_dis])
 							else:
@@ -498,8 +444,8 @@ class BioRelConfig(object):
 		model = nn.DataParallel(ori_model)
 
 		optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=1e-5)
-		# nll_average = nn.CrossEntropyLoss(size_average=True, ignore_index=IGNORE_INDEX)
-		BCE = nn.BCEWithLogitsLoss(reduction='none')
+		nll_average = nn.CrossEntropyLoss(reduction='mean', ignore_index=IGNORE_INDEX)
+		# BCE = nn.BCEWithLogitsLoss(reduction='none')
 
 		if not os.path.exists(self.checkpoint_dir):
 			os.mkdir(self.checkpoint_dir)
@@ -554,7 +500,8 @@ class BioRelConfig(object):
 				dis_t_2_h = -ht_pair_pos+10
 
 				predict_re = model(context_idxs, context_pos, context_ner, context_char_idxs, input_lengths, h_mapping, t_mapping, relation_mask, dis_h_2_t, dis_t_2_h)
-				loss = torch.sum(BCE(predict_re, relation_multi_label)*relation_mask.unsqueeze(2)) /  (self.relation_num * torch.sum(relation_mask))
+				loss = torch.sum(nll_average(predict_re.view(-1, self.relation_num), relation_label.flatten())*relation_mask.unsqueeze(2)) / (self.relation_num * torch.sum(relation_mask))
+				# loss = torch.sum(BCE(predict_re, relation_multi_label)*relation_mask.unsqueeze(2)) /	(self.relation_num * torch.sum(relation_mask))
 
 				output = torch.argmax(predict_re, dim=-1)
 				output = output.data.cpu().numpy()
@@ -601,8 +548,6 @@ class BioRelConfig(object):
 				logging('| epoch {:3d} | time: {:5.2f}s'.format(epoch, time.time() - eval_start_time))
 				logging('-' * 89)
 
-				json.dump(outputs, open('{}/{}_epoch{}_train_predict_labels.json'.format(self.fig_result_dir, model_name, epoch), 'w'), indent=4, sort_keys=True)
-				json.dump(labels, open('{}/{}_epoch{}_train_gold_labels.json'.format(self.fig_result_dir, model_name, epoch), 'w'), indent=4, sort_keys=True)
 				if f1 > best_f1:
 					best_f1 = f1
 					best_auc = auc
@@ -625,7 +570,6 @@ class BioRelConfig(object):
 		total_recall_ignore = 0
 
 		test_result = []
-		test_result_onehot = []
 		total_recall = 0
 		top1_acc = have_label = 0
 
@@ -678,24 +622,16 @@ class BioRelConfig(object):
 					for t_idx in range(L):
 						if h_idx != t_idx:
 							r = int(np.argmax(predict_re[i, j]))
-							test_result_onehot.append(((h_idx, t_idx, r) in label, float(predict_re[i,j,r]), False, titles[i], self.id2rel[r], index, h_idx, t_idx, r))
+							test_result.append(((h_idx, t_idx, r) in label, float(predict_re[i,j,r]), False, titles[i], self.id2rel[r], index, h_idx, t_idx, r))
 							if (h_idx, t_idx, r) in label:
 								top1_acc += 1
-
-							flag = False
-
+								
 							for r in range(1, self.relation_num):
 								intrain = False
 								if (h_idx, t_idx, r) in label:
 									flag = True
 									if label[(h_idx, t_idx, r)]==True:
 										intrain = True
-
-
-								# if not intrain:
-								#	test_result_ignore.append( ((h_idx, t_idx, r) in label, float(predict_re[i,j,r]),  titles[i], self.id2rel[r], index, h_idx, t_idx, r) )
-
-								test_result.append( ((h_idx, t_idx, r) in label, float(predict_re[i,j,r]), intrain,  titles[i], self.id2rel[r], index, h_idx, t_idx, r) )
 							if flag:
 								have_label += 1
 
@@ -708,8 +644,6 @@ class BioRelConfig(object):
 				print('| step {:3d} | time: {:5.2f}'.format(data_idx // self.period, (time.time() - eval_start_time)))
 				eval_start_time = time.time()
 		json.dump(test_result, open(os.path.join(self.fig_result_dir, model_name+'_test_result.json'), 'w'), indent=4, sort_keys=True)
-		# test_result_ignore.sort(key=lambda x: x[1], reverse=True)
-		test_result.sort(key = lambda x: x[1], reverse=True)
 
 		print ('total_recall', total_recall)
 		# plt.xlabel('Recall')
@@ -727,6 +661,7 @@ class BioRelConfig(object):
 		if total_recall == 0:
 			total_recall = 1  # for test
 
+		test_result.sort(key = lambda x: x[1], reverse=True) 
 		for i, item in enumerate(test_result):
 			correct += item[0]
 			pr_y.append(float(correct) / (i + 1))
@@ -755,12 +690,9 @@ class BioRelConfig(object):
 		if output:
 			# output = [x[-4:] for x in test_result[:w+1]]
 			output = [{'index': x[-4], 'h_idx': x[-3], 't_idx': x[-2], 'r_idx': x[-1], 'r': x[-5], 'title': x[-6]} for x in test_result[:w+1]]
-			output_onehot = [{'index': x[-4], 'h_idx': x[-3], 't_idx': x[-2], 'r_idx': x[-1], 'r': x[-5], 'title': x[-6]} for x in test_result_onehot]
 			pred_file = os.path.join(self.fig_result_dir, '_'.join([self.test_prefix, model_name, 'index']))
 			json.dump(output, open(pred_file+'.json', "w"), indent=4, sort_keys=True)
-			json.dump(output_onehot, open(pred_file+'_onehot.json', 'w'), indent=4, sort_keys=True)
 			self.convert_result(pred_file+'.json', pred_file+'_converted.json')
-			self.convert_result(pred_file+'_onehot.json', pred_file+'_onehot_converted.json')
 
 		# plt.plot(pr_x, pr_y, lw=2, label=model_name)
 		# plt.legend(loc="upper right")
