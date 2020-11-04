@@ -632,7 +632,7 @@ class BioRelConfig(object):
 									flag = True
 									if label[(h_idx, t_idx, r)]==True:
 										intrain = True
-							if flag:
+								# if flag:
 								have_label += 1
 
 							j += 1

@@ -165,7 +165,7 @@ class BioRelDataset(Dataset):
         for rel in item['interactions']:
           if not str(rel['label']) in rel2id:
             rel2id[str(rel['label'])] = len(rel2id)
-      json.dump(rel2id, open(self.rel2id_file, 'w'), indent=4, sort_keys=True)
+      json.dump(rel2id, open(os.path.join(self.out_path, 'rel2id.json'), 'w'), indent=4, sort_keys=True)
 
     if not os.path.exists(os.path.join(self.out_path, 'ner2id.json')):
       ner2id = {}
@@ -173,7 +173,7 @@ class BioRelDataset(Dataset):
         for entity in item['entities']:
           if not entity['label'] in ner2id:
             ner2id[entity['label']] = len(ner2id)
-      json.dump(ner2id, open(self.ner2id_file, 'w'), indent=4, sort_keys=True)
+      json.dump(ner2id, open(os.path.join(self.out_path, 'ner2id.json'), 'w'), indent=4, sort_keys=True)
             
     char2id = json.load(open(os.path.join(self.out_path, 'char2id.json')))
     word2id = json.load(open(os.path.join(self.out_path, 'word2id.json')))
