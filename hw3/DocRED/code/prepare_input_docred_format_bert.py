@@ -5,10 +5,13 @@ import numpy as np
 import torch
 import os
 from torch.utils.data import Dataset, DataLoader
+from transformers import BertTokenizer
 
 nlp = spacy.load('en_core_sci_sm')
 
 UNK = '<UNK>'
+CLS = '[CLS]'
+SEP = '[SEP]'
 def int_overlap(a1, b1, a2, b2):
     """Checks whether two intervals overlap"""
     if b1 < a2 or b2 < a1:
@@ -109,7 +112,7 @@ class Sentence:
 
 
 
-class BioRelDataset(Dataset):
+class BioRelBertDataset(Dataset):
   def __init__(self, json_file,
                      config={}):
     self.split = config.get('split', 'train')
@@ -127,6 +130,7 @@ class BioRelDataset(Dataset):
 
   def load_data(self, data_file_name,
                 char_limit = 16,
+                wordpiece_limit = 8,
                 max_length = 256):
     """
       Args:
@@ -157,6 +161,7 @@ class BioRelDataset(Dataset):
         word_lens: N-dim Long Tensor storing the length of each word in characters
         sent_lens: N x L Long Tensor storing the length of each sent in words
     """
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
     ori_data = json.load(open(data_file_name))
     
     if not os.path.exists(os.path.join(self.out_path, 'rel2id.json')):
@@ -176,7 +181,6 @@ class BioRelDataset(Dataset):
       json.dump(ner2id, open(self.ner2id_file, 'w'), indent=4, sort_keys=True)
             
     char2id = json.load(open(os.path.join(self.out_path, 'char2id.json')))
-    word2id = json.load(open(os.path.join(self.out_path, 'word2id.json')))
     ner2id = json.load(open(os.path.join(self.out_path, 'ner2id.json')))
     
     sen_tot = len(ori_data)
@@ -184,32 +188,32 @@ class BioRelDataset(Dataset):
     sen_pos = np.zeros((sen_tot, max_length), dtype = np.int64)
     sen_ner = np.zeros((sen_tot, max_length), dtype = np.int64)
     sen_char = np.zeros((sen_tot, max_length, char_limit), dtype = np.int64)
-
+    wordpiece_map = np.zeros((sen_tot, max_length, wordpiece_limit), dtype = np.int64)
+    wordpiece_mask = np.zeros((sen_tot, max_length, wordpiece_limit))
     whitespaces = {}
     new_ds = []
     for i, d in enumerate(ori_data):
       s = Sentence(d)
       doc_key = d['id']
-      s = Sentence(d)
-      for j, token in enumerate(s.tokens):
-        if j < max_length:
-          w = token.text.lower()
-          if w in word2id:
-            sen_word[i][j] = word2id[w]
-          else:
-            sen_word[i][j] = word2id['UNK']
-          
-          for c_idx, k in enumerate(w):
-            if c_idx>=char_limit:
-              break
-            sen_char[i,j,c_idx] = char2id.get(k, char2id['UNK'])
-
-      for j in range(j + 1, max_length):
-        sen_word[i][j] = word2id['BLANK']
-
+      sen_word[i][0] = tokenizer.convert_tokens_to_ids(CLS)
+      wordpiece_mask[i][0][0] = 1.
+      start = 1
+      l = 0
+      for j, token in enumerate(s.tokens, 1):
+        w = tokenizer.tokenize(token.text)
+        for l, p in enumerate(w):
+            if l>=wordpiece_limit or start+l>=max_length:
+                break
+            sen_word[i][start] = tokenizer.convert_tokens_to_ids(p)
+            wordpiece_map[i][j][l] = start
+            wordpiece_mask[i][j][l] = 1.0 / min(wordpiece_limit, len(w)) 
+            start += 1
+      sen_word[i][min(max_length-1, start)] = tokenizer.convert_tokens_to_ids(SEP)
+      # print(i, start, sum(sen_word[i] > 0))
+      
       for j, ne in enumerate(s.ner_list):
-        sen_ner[i][ne[0]:min(ne[1]+1, max_length)] = ner2id[ne[2]]  
-        sen_pos[i][ne[0]:min(ne[1]+1, max_length)] = j + 1 
+        sen_ner[i][ne[0]+1:min(ne[1]+2, max_length)] = ner2id[ne[2]]  # Consider the start token
+        sen_pos[i][ne[0]+1:min(ne[1]+2, max_length)] = j+1 
 
       whitespaces[doc_key] = s.whitespaces
       entities = []
@@ -223,22 +227,23 @@ class BioRelDataset(Dataset):
           
           if not ne[2] in ent['names']:
             ent['names'][ne[2]] = {'is_mentioned': True,
-                       'mentions': [[ne[0], ne[1]+1]]}  
+                       'mentions': [[ne[0]+1, ne[1]+2]]}  # Consider the start token
           else:
-            ent['names'][ne[2]]['mentions'].append([ne[0], ne[1]+1]) 
+            ent['names'][ne[2]]['mentions'].append([ne[0]+1, ne[1]+2]) 
         entities.append(ent)
       new_d = {'id': d['id'],
-         'text': s.sentence,
+         'text': [CLS]+s.sentence+[SEP],
          'entities': entities,
          'interactions': d['interactions']} 
       new_ds.append(new_d)
     
-    json.dump(new_ds, open(os.path.join(self.out_path, self.split+'.json'), 'w'), indent=4, sort_keys=True)
-    np.save(os.path.join(self.out_path, self.split+'_word.npy'), sen_word)
-    np.save(os.path.join(self.out_path, self.split+'_pos.npy'), sen_pos)
-    np.save(os.path.join(self.out_path, self.split+'_ner.npy'), sen_ner)
-    np.save(os.path.join(self.out_path, self.split+'_char.npy'), sen_char)
-
+    json.dump(new_ds, open(os.path.join(self.out_path, self.split+'_bert.json'), 'w'), indent=4, sort_keys=True)
+    np.save(os.path.join(self.out_path, self.split+'_bert_word.npy'), sen_word)
+    np.save(os.path.join(self.out_path, self.split+'_bert_pos.npy'), sen_pos)
+    np.save(os.path.join(self.out_path, self.split+'_bert_ner.npy'), sen_ner)
+    np.save(os.path.join(self.out_path, self.split+'_bert_char.npy'), sen_char)
+    np.save(os.path.join(self.out_path, self.split+'_bert_wordpiece_map.npy'), wordpiece_map)
+    np.save(os.path.join(self.out_path, self.split+'_bert_wordpiece_mask.npy'), wordpiece_mask)
   
   # def get_batch(self):
   def __getitem__(self, idx):
@@ -250,5 +255,5 @@ class BioRelDataset(Dataset):
            torch.LongTensor(self.char_lens)
   
 if __name__ == '__main__':
-  train_set = BioRelDataset('data/1.0alpha7.train.json', {'split': 'train'})
-  dev_set = BioRelDataset('data/1.0alpha7.dev.json', {'split': 'dev'})        
+  train_set = BioRelBertDataset('data/1.0alpha7.train.json', {'split': 'train'})
+  dev_set = BioRelBertDataset('data/1.0alpha7.dev.json', {'split': 'dev'})        

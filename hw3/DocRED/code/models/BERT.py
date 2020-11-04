@@ -15,7 +15,8 @@ class BERT(nn.Module): # TODO
 		self.use_coreference = False # True
 		self.use_distance = False # True
 	
-		hidden_size = 768 # XXX hidden dimension for Bert
+		hidden_size = 768
+		self.hidden_size = hidden_size
 		if self.use_entity_type:
 			hidden_size += config.entity_type_size
 			self.ner_embed = nn.Embedding(config.entity_type_size, config.entity_type_size, padding_idx=0) # Assume one label per entity
@@ -34,12 +35,15 @@ class BERT(nn.Module): # TODO
 			self.bili = torch.nn.Bilinear(hidden_size, hidden_size, config.relation_num)		 
 
 	def forward(self, context_idxs, pos, context_ner, context_char_idxs, context_lens, h_mapping, t_mapping, 
-							relation_mask, dis_h_2_t, dis_t_2_h):
+							relation_mask, dis_h_2_t, dis_t_2_h, wordpiece_map, wordpiece_mask):
 		self.bert.eval()
 		with torch.no_grad():
-			outputs = self.bert(context_idxs)
-			sent = outputs[2][-2]
-
+			batch_size = wordpiece_map.size(0)
+			token_len = wordpiece_map.size(2)
+			outputs = self.bert(context_idxs)[0]
+			outputs = outputs.unsqueeze(2).expand(-1, -1, token_len, -1)
+			wordpiece_map = wordpiece_map.unsqueeze(-1).expand(-1, -1, -1, self.hidden_size)
+			sent = (torch.gather(outputs, 1, wordpiece_map) * wordpiece_mask.unsqueeze(-1)).sum(2)
 		if self.use_coreference:
 			sent = torch.cat([sent, self.entity_embed(pos)], dim=-1)
 		
@@ -64,4 +68,3 @@ class BERT(nn.Module): # TODO
 
 		
 
-		

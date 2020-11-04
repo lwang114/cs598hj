@@ -34,6 +34,8 @@ model = {
 
 if args.model_name == 'BiLSTM_Joint':
 	con = config.BioRelJointConfig(args)
+elif args.model_name == 'BERT':
+        con = config.BioRelBertConfig(args)
 else:
 	con = config.BioRelConfig(args)
 con.set_max_epoch(200)
